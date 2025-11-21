@@ -6,6 +6,40 @@
     <title>GamesbyDD | Premium Gaming Experience</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK v9 (Modular) -->
+    <script type="module">
+        // =============================================
+        // FIREBASE CONFIGURATION - MODULAR V9
+        // =============================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDzrJM46NhXTsfECgrWJ_-4XBdHvMex1bI",
+            authDomain: "allinone-73893.firebaseapp.com",
+            databaseURL: "https://allinone-73893-default-rtdb.firebaseio.com",
+            projectId: "allinone-73893",
+            storageBucket: "allinone-73893.firebasestorage.app",
+            messagingSenderId: "754050902178",
+            appId: "1:754050902178:web:3245d53365269391a3cffb",
+            measurementId: "G-GGF3BGJR29"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make Firebase available globally
+        window.firebaseApp = app;
+        window.firebaseDb = db;
+        window.firebaseMethods = {
+            getDoc, setDoc, onSnapshot, doc, collection
+        };
+        
+        console.log('Firebase initialized successfully');
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -39,7 +73,7 @@
             line-height: 1.6;
         }
 
-        /* --- NEW STYLES FOR GAME MODAL (PLAY ON SAME PAGE) --- */
+        /* Game Modal Styles */
         .game-modal {
             position: fixed;
             top: 0;
@@ -48,7 +82,7 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.95);
             z-index: 2000;
-            display: none; /* Hidden by default */
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -60,7 +94,6 @@
         }
 
         .modal-header {
-            /* UPDATED: Matches the new iframe width */
             width: 95%;
             max-width: 1800px; 
             display: flex;
@@ -95,11 +128,10 @@
             transform: scale(1.05);
         }
 
-        /* UPDATED: Increased size styles */
         .iframe-container {
-            width: 95%;              /* Increased from 90% */
-            max-width: 1800px;       /* Increased from 1200px */
-            height: 90vh;            /* Increased from 80vh */
+            width: 95%;
+            max-width: 1800px;
+            height: 90vh;
             background: #000;
             border-radius: 15px;
             overflow: hidden;
@@ -114,12 +146,10 @@
             display: block;
         }
 
-        /* --- END NEW STYLES --- */
-
         /* Notification Toast Styles */
         .toast {
             position: fixed;
-            top: 90px; /* Below header */
+            top: 90px;
             right: 20px;
             background: white;
             color: var(--dark);
@@ -626,7 +656,7 @@
             position: relative;
             transition: all 0.3s ease;
             padding-bottom: 10px;
-            margin-bottom: -12px; /* Align with border */
+            margin-bottom: -12px;
         }
 
         .tab-item:hover {
@@ -705,7 +735,7 @@
             flex-direction: column;
             height: 100%;
             border: 1px solid var(--gray-light);
-            cursor: pointer; /* Added cursor pointer for whole card */
+            cursor: pointer;
         }
 
         .game-card:hover {
@@ -793,7 +823,7 @@
 
         .game-meta {
             display: flex;
-            justify-content: space-between; /* Will align single item to start */
+            justify-content: space-between;
             color: var(--gray);
             font-size: 0.85rem;
             margin-bottom: 15px;
@@ -987,7 +1017,6 @@
             }
             
             .iframe-container {
-                /* UPDATED: Increased mobile height */
                 height: 80vh;
                 width: 95%;
             }
@@ -1169,7 +1198,12 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Wait for Firebase to initialize
+            while (!window.firebaseDb) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
             const gamesContainer = document.getElementById('gamesContainer');
             const searchInput = document.getElementById('searchInput');
             const favCount = document.getElementById('favCount');
@@ -1209,15 +1243,115 @@
             let currentCategory = 'All';
             let allGamesData = [];
             let favorites = JSON.parse(localStorage.getItem('myGameFavorites')) || [];
-            let categories = JSON.parse(localStorage.getItem('gamesbydd_categories')) || [
-                'Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing'
-            ];
-            let gameCategories = JSON.parse(localStorage.getItem('gamesbydd_game_categories')) || {};
+            let categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing']; // Default
+            let gameCategories = {}; // Will be loaded from Firebase
             let isAdmin = localStorage.getItem('gamesbydd_admin') === 'true';
+            let unsubscribeFromFirestore = null;
+
+            // Firebase references
+            const db = window.firebaseDb;
+            const { getDoc, setDoc, onSnapshot, doc } = window.firebaseMethods;
+
+            // =============================================
+            // FIREBASE FUNCTIONS - MODULAR V9
+            // =============================================
             
+            // Load categories and game categories from Firestore
+            async function loadFromFirestore() {
+                try {
+                    const docRef = doc(db, 'settings', 'categories');
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        categories = data.categories || categories;
+                        gameCategories = data.gameCategories || {};
+                        console.log('Loaded from Firestore:', data);
+                        return true;
+                    } else {
+                        // Create initial document if it doesn't exist
+                        await saveToFirestore();
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('Error loading from Firestore:', error);
+                    // Fallback to localStorage
+                    const storedCategories = localStorage.getItem('gamesbydd_categories');
+                    const storedGameCategories = localStorage.getItem('gamesbydd_game_categories');
+                    
+                    if (storedCategories) categories = JSON.parse(storedCategories);
+                    if (storedGameCategories) gameCategories = JSON.parse(storedGameCategories);
+                    
+                    return false;
+                }
+            }
+
+            // Save categories and game categories to Firestore
+            async function saveToFirestore() {
+                try {
+                    await setDoc(doc(db, 'settings', 'categories'), {
+                        categories: categories,
+                        gameCategories: gameCategories,
+                        lastUpdated: new Date()
+                    });
+                    console.log('Saved to Firestore successfully');
+                    return true;
+                } catch (error) {
+                    console.error('Error saving to Firestore:', error);
+                    // Fallback to localStorage
+                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
+                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
+                    return false;
+                }
+            }
+
+            // Set up real-time listener for Firestore changes
+            function setupFirestoreListener() {
+                if (unsubscribeFromFirestore) {
+                    unsubscribeFromFirestore(); // Clean up previous listener
+                }
+
+                const docRef = doc(db, 'settings', 'categories');
+                
+                unsubscribeFromFirestore = onSnapshot(docRef, (doc) => {
+                    if (doc.exists()) {
+                        const data = doc.data();
+                        const newCategories = data.categories || categories;
+                        const newGameCategories = data.gameCategories || {};
+                        
+                        // Only update if data actually changed
+                        if (JSON.stringify(newCategories) !== JSON.stringify(categories) || 
+                            JSON.stringify(newGameCategories) !== JSON.stringify(gameCategories)) {
+                            
+                            categories = newCategories;
+                            gameCategories = newGameCategories;
+                            
+                            // Update UI
+                            updateCategories();
+                            renderCurrentView();
+                            
+                            // Show notification to users (but not to admin who made the change)
+                            if (!isAdmin) {
+                                showToast('Categories updated!', 'added');
+                            }
+                        }
+                    }
+                }, (error) => {
+                    console.error('Firestore listener error:', error);
+                });
+            }
+
             // Initialize
-            function init() {
-                loadGames();
+            async function init() {
+                // First load from Firestore
+                await loadFromFirestore();
+                
+                // Then load games
+                await loadGames();
+                
+                // Set up real-time listener
+                setupFirestoreListener();
+                
                 updateFavCount();
                 updateCategories();
                 
@@ -1227,23 +1361,21 @@
                 }
             }
 
-            // --- NEW: Game Player Functions ---
+            // --- Game Player Functions ---
             window.openGameModal = function(url, title) {
                 gameFrame.src = url;
                 modalGameTitle.textContent = title;
                 gameModal.classList.add('active');
-                // Prevent scrolling on body while game is open
                 document.body.style.overflow = 'hidden';
             };
 
             window.closeGameModal = function() {
                 gameModal.classList.remove('active');
-                gameFrame.src = ''; // Clear src to stop game sounds/logic
-                // Restore scrolling
+                gameFrame.src = '';
                 document.body.style.overflow = 'auto';
             };
 
-            // Close modal if clicking outside content (optional)
+            // Close modal if clicking outside content
             gameModal.addEventListener('click', function(e) {
                 if(e.target === gameModal) {
                     closeGameModal();
@@ -1341,7 +1473,7 @@
                 });
                 
                 if (needsUpdate) {
-                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
+                    saveToFirestore(); // Save to Firestore instead of localStorage
                 }
             }
 
@@ -1391,7 +1523,7 @@
                 gamesContainer.innerHTML = gamesToRender.map(game => createGameCard(game)).join('');
             }
 
-            // Create Card HTML - UPDATED CLICK HANDLERS
+            // Create Card HTML
             function createGameCard(game) {
                 const isFav = favorites.some(f => f.id === game.id);
                 const heartClass = isFav ? 'fas fa-heart' : 'far fa-heart';
@@ -1417,7 +1549,6 @@
                                     <div>${gameCategory}</div>
                                 </div>
                             </div>
-                            <!-- Replaced href with onclick handler -->
                             <a href="javascript:void(0)" onclick="openGameModal('${game.link}', '${safeName}')" class="play-btn">
                                 <i class="fas fa-play"></i> Play Now
                             </a>
@@ -1487,7 +1618,6 @@
                     a.textContent = category;
                     a.addEventListener('click', function(e) {
                         e.preventDefault();
-                        // Find the corresponding filter button and click it
                         const filterBtn = document.querySelector(`.filter-btn[data-category="${category}"]`);
                         if (filterBtn) {
                             filterBtn.click();
@@ -1575,19 +1705,22 @@
                 
                 if (categoryName && !categories.includes(categoryName)) {
                     categories.push(categoryName);
-                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
-                    updateCategories();
-                    if (isAdmin) {
-                        updateGameCategoryEditor();
-                    }
-                    newCategoryName.value = '';
-                    
-                    // Show success message
-                    alert(`Category "${categoryName}" added successfully!`);
+                    saveToFirestore().then(success => {
+                        if (success) {
+                            updateCategories();
+                            if (isAdmin) {
+                                updateGameCategoryEditor();
+                            }
+                            newCategoryName.value = '';
+                            showToast(`Category "${categoryName}" added successfully!`, 'added');
+                        } else {
+                            showToast('Error saving category. Using local storage.', 'removed');
+                        }
+                    });
                 } else if (categories.includes(categoryName)) {
-                    alert('This category already exists!');
+                    showToast('This category already exists!', 'removed');
                 } else {
-                    alert('Please enter a valid category name!');
+                    showToast('Please enter a valid category name!', 'removed');
                 }
             }
             
@@ -1597,7 +1730,7 @@
                 
                 if (newName && newName.trim() && newName !== category) {
                     if (categories.includes(newName)) {
-                        alert('This category name already exists!');
+                        showToast('This category name already exists!', 'removed');
                         return;
                     }
                     
@@ -1614,25 +1747,25 @@
                         }
                     });
                     
-                    // Save to localStorage
-                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
-                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
-                    
-                    // Update UI
-                    updateCategories();
-                    if (isAdmin) {
-                        updateGameCategoryEditor();
-                    }
-                    renderCurrentView();
-                    
-                    // Show success message
-                    alert(`Category renamed to "${newName}" successfully!`);
+                    // Save to Firestore
+                    saveToFirestore().then(success => {
+                        if (success) {
+                            updateCategories();
+                            if (isAdmin) {
+                                updateGameCategoryEditor();
+                            }
+                            renderCurrentView();
+                            showToast(`Category renamed to "${newName}" successfully!`, 'added');
+                        } else {
+                            showToast('Error saving changes. Using local storage.', 'removed');
+                        }
+                    });
                 }
             }
             
             // Delete a category
             function deleteCategory(category) {
-                if (confirm(`Are you sure you want to delete the category "${category}"? Games in this category will be moved to "Uncategorized".`)) {
+                if (confirm(`Are you sure you want to delete the category "${category}"? Games in this category will be moved to "${categories[0] || 'Uncategorized'}".`)) {
                     // Remove category from categories array
                     categories = categories.filter(cat => cat !== category);
                     
@@ -1643,33 +1776,33 @@
                         }
                     });
                     
-                    // Save to localStorage
-                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
-                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
-                    
-                    // Update UI
-                    updateCategories();
-                    if (isAdmin) {
-                        updateGameCategoryEditor();
-                    }
-                    renderCurrentView();
-                    
-                    // Show success message
-                    alert(`Category "${category}" deleted successfully!`);
+                    // Save to Firestore
+                    saveToFirestore().then(success => {
+                        if (success) {
+                            updateCategories();
+                            if (isAdmin) {
+                                updateGameCategoryEditor();
+                            }
+                            renderCurrentView();
+                            showToast(`Category "${category}" deleted successfully!`, 'added');
+                        } else {
+                            showToast('Error deleting category. Using local storage.', 'removed');
+                        }
+                    });
                 }
             }
             
             // Save all changes from admin panel
             function saveChanges() {
-                localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
-                localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
-                
-                // Update UI
-                updateCategories();
-                renderCurrentView();
-                
-                // Show success message
-                alert('All changes saved successfully!');
+                saveToFirestore().then(success => {
+                    if (success) {
+                        updateCategories();
+                        renderCurrentView();
+                        showToast('All changes saved successfully! All users will see updates.', 'added');
+                    } else {
+                        showToast('Error saving changes. Using local storage.', 'removed');
+                    }
+                });
             }
             
             // Reset categories to default
@@ -1681,19 +1814,19 @@
                     // Reinitialize game categories
                     initializeGameCategories();
                     
-                    // Save to localStorage
-                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
-                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
-                    
-                    // Update UI
-                    updateCategories();
-                    if (isAdmin) {
-                        updateGameCategoryEditor();
-                    }
-                    renderCurrentView();
-                    
-                    // Show success message
-                    alert('Categories reset to default successfully!');
+                    // Save to Firestore
+                    saveToFirestore().then(success => {
+                        if (success) {
+                            updateCategories();
+                            if (isAdmin) {
+                                updateGameCategoryEditor();
+                            }
+                            renderCurrentView();
+                            showToast('Categories reset to default successfully!', 'added');
+                        } else {
+                            showToast('Error resetting categories. Using local storage.', 'removed');
+                        }
+                    });
                 }
             }
             
@@ -1709,8 +1842,9 @@
                     adminPanel.classList.add('active');
                     adminBtn.style.display = 'flex';
                     updateGameCategoryEditor();
+                    showToast('Admin login successful!', 'added');
                 } else {
-                    alert('Invalid admin password!');
+                    showToast('Invalid admin password!', 'removed');
                 }
             }
             
@@ -1720,16 +1854,15 @@
                 localStorage.removeItem('gamesbydd_admin');
                 adminPanel.classList.remove('active');
                 adminBtn.style.display = 'none';
+                showToast('Admin logout successful!', 'added');
             }
 
             // Filter handler for category buttons
             function filterHandler() {
-                // Remove active class from all buttons
                 document.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
                 
-                // Add active class to clicked button
                 this.classList.add('active');
                 
                 currentCategory = this.getAttribute('data-category');
@@ -1832,7 +1965,7 @@
             }
             
             // Initialize the application
-            init();
+            await init();
             setupEventListeners();
             
             // Make toggleFavorite available globally
