@@ -28,6 +28,7 @@
             --card-bg: #FFFFFF;
             --header-bg: linear-gradient(135deg, #6C5CE7 0%, #5649C0 100%);
             --footer-bg: #2D3436;
+            --admin-bg: #1a1a2e;
         }
 
         body {
@@ -237,6 +238,262 @@
             transform: translateY(-50%);
             color: white;
             font-size: 1.1rem;
+        }
+
+        /* Admin Button */
+        .admin-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Admin Login Modal */
+        .admin-login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .admin-login-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .login-form {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-form h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--dark);
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-light);
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .login-form button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-form button:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: var(--admin-bg);
+            color: white;
+            z-index: 1000;
+            transition: right 0.4s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+        }
+
+        .admin-panel.active {
+            right: 0;
+        }
+
+        .admin-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-header h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+        }
+
+        .close-admin {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-admin:hover {
+            color: var(--accent);
+        }
+
+        .admin-content {
+            padding: 20px;
+        }
+
+        .admin-section {
+            margin-bottom: 30px;
+        }
+
+        .admin-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .admin-input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .admin-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .admin-btn-panel {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .admin-btn-panel:hover {
+            background: var(--primary-dark);
+        }
+
+        .category-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .category-actions button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .category-actions .edit-btn:hover {
+            color: var(--accent);
+        }
+
+        .category-actions .delete-btn:hover {
+            color: var(--error);
+        }
+
+        .game-category-editor {
+            margin-top: 20px;
+        }
+
+        .game-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .game-category {
+            background: var(--primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        .category-select {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 5px 10px;
         }
 
         /* Hero Section */
@@ -734,6 +991,11 @@
                 height: 80vh;
                 width: 95%;
             }
+
+            .admin-panel {
+                width: 100%;
+                right: -100%;
+            }
         }
     </style>
 </head>
@@ -758,6 +1020,60 @@
         <span id="toastMessage">Notification</span>
     </div>
 
+    <!-- Admin Login Modal -->
+    <div class="admin-login-modal" id="adminLoginModal">
+        <div class="login-form">
+            <h3>Admin Login</h3>
+            <input type="password" id="adminPassword" placeholder="Enter admin password">
+            <button id="adminLoginBtn">Login</button>
+            <button id="closeLoginModal">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2>Admin Panel</h2>
+            <button class="close-admin" id="closeAdminPanel">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="admin-content">
+            <div class="admin-section">
+                <h3>Category Management</h3>
+                <input type="text" class="admin-input" id="newCategoryName" placeholder="New category name">
+                <button class="admin-btn-panel" id="addCategoryBtn">
+                    <i class="fas fa-plus"></i> Add Category
+                </button>
+                
+                <h4>Existing Categories</h4>
+                <ul class="category-list" id="categoryList">
+                    <!-- Categories will be added here dynamically -->
+                </ul>
+            </div>
+            
+            <div class="admin-section">
+                <h3>Game Categories</h3>
+                <div class="game-category-editor" id="gameCategoryEditor">
+                    <!-- Game category assignments will be added here dynamically -->
+                </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>Admin Actions</h3>
+                <button class="admin-btn-panel" id="saveChangesBtn">
+                    <i class="fas fa-save"></i> Save All Changes
+                </button>
+                <button class="admin-btn-panel" id="resetCategoriesBtn">
+                    <i class="fas fa-undo"></i> Reset to Default
+                </button>
+                <button class="admin-btn-panel" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
     <header>
         <div class="header-content">
             <div class="logo">
@@ -769,6 +1085,9 @@
             <div class="search-container">
                 <input type="text" id="searchInput" placeholder="Search for games...">
                 <i class="fas fa-search"></i>
+            </div>
+            <div class="admin-btn" id="adminBtn">
+                <i class="fas fa-user-shield"></i>
             </div>
         </div>
     </header>
@@ -801,12 +1120,7 @@
 
         <!-- Category Filters (Visible only on All Games) -->
         <div class="filters" id="categoryFilters">
-            <button class="filter-btn active" data-category="All">All Games</button>
-            <button class="filter-btn" data-category="Action">Action</button>
-            <button class="filter-btn" data-category="Adventure">Adventure</button>
-            <button class="filter-btn" data-category="Puzzle">Puzzle</button>
-            <button class="filter-btn" data-category="Strategy">Strategy</button>
-            <button class="filter-btn" data-category="Racing">Racing</button>
+            <!-- Filter buttons will be generated dynamically -->
         </div>
 
         <!-- Games Grid -->
@@ -840,12 +1154,8 @@
             </div>
             <div class="footer-column">
                 <h4>Categories</h4>
-                <ul>
-                    <li><a href="#" onclick="filterByLink('Action')">Action</a></li>
-                    <li><a href="#" onclick="filterByLink('Adventure')">Adventure</a></li>
-                    <li><a href="#" onclick="filterByLink('Puzzle')">Puzzle</a></li>
-                    <li><a href="#" onclick="filterByLink('Strategy')">Strategy</a></li>
-                    <li><a href="#" onclick="filterByLink('Racing')">Racing</a></li>
+                <ul id="footerCategories">
+                    <!-- Categories will be added dynamically -->
                 </ul>
             </div>
         </div>
@@ -864,18 +1174,33 @@
             const searchInput = document.getElementById('searchInput');
             const favCount = document.getElementById('favCount');
             const backToTop = document.getElementById('backToTop');
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            const exploreBtn = document.getElementById('exploreBtn');
             const categoryFilters = document.getElementById('categoryFilters');
             const tabAll = document.getElementById('tabAll');
             const tabFav = document.getElementById('tabFav');
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
+            const footerCategories = document.getElementById('footerCategories');
             
             // Modal Elements
             const gameModal = document.getElementById('gameModal');
             const gameFrame = document.getElementById('gameFrame');
             const modalGameTitle = document.getElementById('modalGameTitle');
+            
+            // Admin elements
+            const adminBtn = document.getElementById('adminBtn');
+            const adminLoginModal = document.getElementById('adminLoginModal');
+            const adminPassword = document.getElementById('adminPassword');
+            const adminLoginBtn = document.getElementById('adminLoginBtn');
+            const closeLoginModal = document.getElementById('closeLoginModal');
+            const adminPanel = document.getElementById('adminPanel');
+            const closeAdminPanel = document.getElementById('closeAdminPanel');
+            const newCategoryName = document.getElementById('newCategoryName');
+            const addCategoryBtn = document.getElementById('addCategoryBtn');
+            const categoryList = document.getElementById('categoryList');
+            const gameCategoryEditor = document.getElementById('gameCategoryEditor');
+            const saveChangesBtn = document.getElementById('saveChangesBtn');
+            const resetCategoriesBtn = document.getElementById('resetCategoriesBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
             
             let toastTimeout;
             
@@ -884,11 +1209,22 @@
             let currentCategory = 'All';
             let allGamesData = [];
             let favorites = JSON.parse(localStorage.getItem('myGameFavorites')) || [];
+            let categories = JSON.parse(localStorage.getItem('gamesbydd_categories')) || [
+                'Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing'
+            ];
+            let gameCategories = JSON.parse(localStorage.getItem('gamesbydd_game_categories')) || {};
+            let isAdmin = localStorage.getItem('gamesbydd_admin') === 'true';
             
             // Initialize
             function init() {
                 loadGames();
                 updateFavCount();
+                updateCategories();
+                
+                // Show admin button if already logged in as admin
+                if (isAdmin) {
+                    adminBtn.style.display = 'flex';
+                }
             }
 
             // --- NEW: Game Player Functions ---
@@ -952,6 +1288,9 @@
                     const games = parseCSV(csvText);
                     allGamesData = games;
                     
+                    // Initialize game categories for games that don't have them
+                    initializeGameCategories();
+                    
                     renderCurrentView();
                     
                 } catch (error) {
@@ -968,7 +1307,6 @@
             function parseCSV(csvText) {
                 const lines = csvText.split('\n');
                 const games = [];
-                const categories = ["Action", "Adventure", "Puzzle", "Strategy", "Racing"];
                 
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
@@ -977,18 +1315,34 @@
                     const parts = line.split(',');
                     if (parts.length >= 3) {
                         const id = i;
-                        const category = categories[Math.floor(Math.random() * categories.length)];
                         
                         games.push({
                             id: id,
                             name: parts[0].trim(),
                             icon: parts[1].trim() || 'https://via.placeholder.com/400x300?text=Game',
-                            link: parts[2].trim(),
-                            category: category 
+                            link: parts[2].trim()
                         });
                     }
                 }
                 return games;
+            }
+
+            // Initialize game categories for games that don't have them
+            function initializeGameCategories() {
+                let needsUpdate = false;
+                
+                allGamesData.forEach(game => {
+                    if (!gameCategories[game.id]) {
+                        // Assign a random category from available categories
+                        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+                        gameCategories[game.id] = randomCategory;
+                        needsUpdate = true;
+                    }
+                });
+                
+                if (needsUpdate) {
+                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
+                }
             }
 
             window.switchTab = function(view) {
@@ -1014,7 +1368,7 @@
                     if (currentCategory === 'All') {
                         gamesToRender = allGamesData;
                     } else {
-                        gamesToRender = allGamesData.filter(g => g.category === currentCategory);
+                        gamesToRender = allGamesData.filter(g => gameCategories[g.id] === currentCategory);
                     }
                 } else {
                     gamesToRender = favorites;
@@ -1042,13 +1396,14 @@
                 const isFav = favorites.some(f => f.id === game.id);
                 const heartClass = isFav ? 'fas fa-heart' : 'far fa-heart';
                 const btnClass = isFav ? 'fav-btn active' : 'fav-btn';
+                const gameCategory = gameCategories[game.id] || 'Uncategorized';
 
                 // Escaping function for single quotes in names
                 const safeName = game.name.replace(/'/g, "\\'");
 
                 return `
                     <div class="game-card">
-                        <div class="game-badge">${game.category}</div>
+                        <div class="game-badge">${gameCategory}</div>
                         <div class="${btnClass}" onclick="toggleFavorite(${game.id}, this); event.stopPropagation();">
                             <i class="${heartClass}"></i>
                         </div>
@@ -1059,7 +1414,7 @@
                             <div>
                                 <div class="game-title">${game.name}</div>
                                 <div class="game-meta">
-                                    <div>${game.category}</div>
+                                    <div>${gameCategory}</div>
                                 </div>
                             </div>
                             <!-- Replaced href with onclick handler -->
@@ -1099,69 +1454,389 @@
                 favCount.textContent = favorites.length;
             }
 
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    currentCategory = this.getAttribute('data-category');
-                    
-                    if(currentView === 'fav') {
-                        switchTab('all');
-                    } else {
-                        renderCurrentView();
-                    }
+            // Update categories in filters and footer
+            function updateCategories() {
+                // Update filter buttons
+                categoryFilters.innerHTML = '';
+                
+                // Add "All" filter
+                const allButton = document.createElement('button');
+                allButton.className = 'filter-btn active';
+                allButton.setAttribute('data-category', 'All');
+                allButton.textContent = 'All Games';
+                allButton.addEventListener('click', filterHandler);
+                categoryFilters.appendChild(allButton);
+                
+                // Add category filters
+                categories.forEach(category => {
+                    const button = document.createElement('button');
+                    button.className = 'filter-btn';
+                    button.setAttribute('data-category', category);
+                    button.textContent = category;
+                    button.addEventListener('click', filterHandler);
+                    categoryFilters.appendChild(button);
                 });
-            });
+                
+                // Update footer categories
+                footerCategories.innerHTML = '';
+                categories.forEach(category => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.setAttribute('data-category', category);
+                    a.textContent = category;
+                    a.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Find the corresponding filter button and click it
+                        const filterBtn = document.querySelector(`.filter-btn[data-category="${category}"]`);
+                        if (filterBtn) {
+                            filterBtn.click();
+                            document.querySelector('.filters').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
+                    li.appendChild(a);
+                    footerCategories.appendChild(li);
+                });
+                
+                // Update admin category list if admin is logged in
+                if (isAdmin) {
+                    updateAdminCategoryList();
+                }
+            }
+            
+            // Update admin category list
+            function updateAdminCategoryList() {
+                categoryList.innerHTML = '';
+                
+                categories.forEach(category => {
+                    const li = document.createElement('li');
+                    li.className = 'category-item';
+                    li.innerHTML = `
+                        <span>${category}</span>
+                        <div class="category-actions">
+                            <button class="edit-btn" data-category="${category}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn" data-category="${category}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    categoryList.appendChild(li);
+                });
+                
+                // Add event listeners to edit and delete buttons
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const category = this.getAttribute('data-category');
+                        editCategory(category);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const category = this.getAttribute('data-category');
+                        deleteCategory(category);
+                    });
+                });
+            }
+            
+            // Update game category editor in admin panel
+            function updateGameCategoryEditor() {
+                gameCategoryEditor.innerHTML = '';
+                
+                allGamesData.forEach(game => {
+                    const gameItem = document.createElement('div');
+                    gameItem.className = 'game-item';
+                    gameItem.innerHTML = `
+                        <span>${game.name}</span>
+                        <select class="category-select" data-game="${game.id}">
+                            ${categories.map(cat => 
+                                `<option value="${cat}" ${gameCategories[game.id] === cat ? 'selected' : ''}>${cat}</option>`
+                            ).join('')}
+                        </select>
+                    `;
+                    gameCategoryEditor.appendChild(gameItem);
+                });
+                
+                // Add event listeners to category selects
+                document.querySelectorAll('.category-select').forEach(select => {
+                    select.addEventListener('change', function() {
+                        const gameId = this.getAttribute('data-game');
+                        const newCategory = this.value;
+                        gameCategories[gameId] = newCategory;
+                    });
+                });
+            }
+            
+            // Add a new category
+            function addCategory() {
+                const categoryName = newCategoryName.value.trim();
+                
+                if (categoryName && !categories.includes(categoryName)) {
+                    categories.push(categoryName);
+                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
+                    updateCategories();
+                    if (isAdmin) {
+                        updateGameCategoryEditor();
+                    }
+                    newCategoryName.value = '';
+                    
+                    // Show success message
+                    alert(`Category "${categoryName}" added successfully!`);
+                } else if (categories.includes(categoryName)) {
+                    alert('This category already exists!');
+                } else {
+                    alert('Please enter a valid category name!');
+                }
+            }
+            
+            // Edit a category
+            function editCategory(category) {
+                const newName = prompt('Enter new name for category:', category);
+                
+                if (newName && newName.trim() && newName !== category) {
+                    if (categories.includes(newName)) {
+                        alert('This category name already exists!');
+                        return;
+                    }
+                    
+                    // Update category name in categories array
+                    const index = categories.indexOf(category);
+                    if (index !== -1) {
+                        categories[index] = newName;
+                    }
+                    
+                    // Update category in game assignments
+                    Object.keys(gameCategories).forEach(gameId => {
+                        if (gameCategories[gameId] === category) {
+                            gameCategories[gameId] = newName;
+                        }
+                    });
+                    
+                    // Save to localStorage
+                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
+                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
+                    
+                    // Update UI
+                    updateCategories();
+                    if (isAdmin) {
+                        updateGameCategoryEditor();
+                    }
+                    renderCurrentView();
+                    
+                    // Show success message
+                    alert(`Category renamed to "${newName}" successfully!`);
+                }
+            }
+            
+            // Delete a category
+            function deleteCategory(category) {
+                if (confirm(`Are you sure you want to delete the category "${category}"? Games in this category will be moved to "Uncategorized".`)) {
+                    // Remove category from categories array
+                    categories = categories.filter(cat => cat !== category);
+                    
+                    // Update game assignments - move games to first available category
+                    Object.keys(gameCategories).forEach(gameId => {
+                        if (gameCategories[gameId] === category) {
+                            gameCategories[gameId] = categories[0] || 'Uncategorized';
+                        }
+                    });
+                    
+                    // Save to localStorage
+                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
+                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
+                    
+                    // Update UI
+                    updateCategories();
+                    if (isAdmin) {
+                        updateGameCategoryEditor();
+                    }
+                    renderCurrentView();
+                    
+                    // Show success message
+                    alert(`Category "${category}" deleted successfully!`);
+                }
+            }
+            
+            // Save all changes from admin panel
+            function saveChanges() {
+                localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
+                localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
+                
+                // Update UI
+                updateCategories();
+                renderCurrentView();
+                
+                // Show success message
+                alert('All changes saved successfully!');
+            }
+            
+            // Reset categories to default
+            function resetCategories() {
+                if (confirm('Are you sure you want to reset all categories to default? This will remove any custom categories and reassign games to default categories.')) {
+                    categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing'];
+                    gameCategories = {};
+                    
+                    // Reinitialize game categories
+                    initializeGameCategories();
+                    
+                    // Save to localStorage
+                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
+                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
+                    
+                    // Update UI
+                    updateCategories();
+                    if (isAdmin) {
+                        updateGameCategoryEditor();
+                    }
+                    renderCurrentView();
+                    
+                    // Show success message
+                    alert('Categories reset to default successfully!');
+                }
+            }
+            
+            // Admin login
+            function adminLogin() {
+                // Password is "868659"
+                const password = adminPassword.value;
+                
+                if (password === '868659') {
+                    isAdmin = true;
+                    localStorage.setItem('gamesbydd_admin', 'true');
+                    adminLoginModal.classList.remove('active');
+                    adminPanel.classList.add('active');
+                    adminBtn.style.display = 'flex';
+                    updateGameCategoryEditor();
+                } else {
+                    alert('Invalid admin password!');
+                }
+            }
+            
+            // Admin logout
+            function adminLogout() {
+                isAdmin = false;
+                localStorage.removeItem('gamesbydd_admin');
+                adminPanel.classList.remove('active');
+                adminBtn.style.display = 'none';
+            }
+
+            // Filter handler for category buttons
+            function filterHandler() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                currentCategory = this.getAttribute('data-category');
+                
+                if(currentView === 'fav') {
+                    switchTab('all');
+                } else {
+                    renderCurrentView();
+                }
+            }
 
             window.filterByLink = function(category) {
                 document.getElementById('gameTabs').scrollIntoView({ behavior: 'smooth' });
                 switchTab('all');
-                const btn = Array.from(filterButtons).find(b => b.getAttribute('data-category') === category);
+                const btn = Array.from(document.querySelectorAll('.filter-btn')).find(b => b.getAttribute('data-category') === category);
                 if(btn) btn.click();
             };
 
-            exploreBtn.addEventListener('click', function() {
-                document.getElementById('gameTabs').scrollIntoView({ behavior: 'smooth' });
-            });
-
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                
-                if(searchTerm.length > 0) {
-                    if(currentView === 'fav') switchTab('all');
-
-                    const filteredGames = allGamesData.filter(game => 
-                        game.name.toLowerCase().includes(searchTerm)
-                    );
-                    
-                    if (filteredGames.length === 0) {
-                        gamesContainer.innerHTML = `
-                            <div class="no-results">
-                                <i class="fas fa-search"></i>
-                                <p>No games found matching "${searchTerm}"</p>
-                            </div>`;
+            // Set up all event listeners
+            function setupEventListeners() {
+                // Back to top functionality
+                window.addEventListener('scroll', function() {
+                    if (window.pageYOffset > 300) {
+                        backToTop.classList.add('show');
                     } else {
-                        gamesContainer.innerHTML = filteredGames.map(game => createGameCard(game)).join('');
+                        backToTop.classList.remove('show');
                     }
-                } else {
-                    renderCurrentView();
-                }
-            });
+                });
+                
+                backToTop.addEventListener('click', function() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                
+                // Search functionality
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    
+                    if(searchTerm.length > 0) {
+                        if(currentView === 'fav') switchTab('all');
 
-            window.addEventListener('scroll', function() {
-                if (window.pageYOffset > 300) {
-                    backToTop.classList.add('show');
-                } else {
-                    backToTop.classList.remove('show');
-                }
-            });
+                        const filteredGames = allGamesData.filter(game => 
+                            game.name.toLowerCase().includes(searchTerm)
+                        );
+                        
+                        if (filteredGames.length === 0) {
+                            gamesContainer.innerHTML = `
+                                <div class="no-results">
+                                    <i class="fas fa-search"></i>
+                                    <p>No games found matching "${searchTerm}"</p>
+                                </div>`;
+                        } else {
+                            gamesContainer.innerHTML = filteredGames.map(game => createGameCard(game)).join('');
+                        }
+                    } else {
+                        renderCurrentView();
+                    }
+                });
+
+                exploreBtn.addEventListener('click', function() {
+                    document.getElementById('gameTabs').scrollIntoView({ behavior: 'smooth' });
+                });
+
+                // Admin functionality
+                adminBtn.addEventListener('click', function() {
+                    if (isAdmin) {
+                        adminPanel.classList.add('active');
+                        updateGameCategoryEditor();
+                    } else {
+                        adminLoginModal.classList.add('active');
+                    }
+                });
+                
+                adminLoginBtn.addEventListener('click', adminLogin);
+                
+                closeLoginModal.addEventListener('click', function() {
+                    adminLoginModal.classList.remove('active');
+                });
+                
+                closeAdminPanel.addEventListener('click', function() {
+                    adminPanel.classList.remove('active');
+                });
+                
+                addCategoryBtn.addEventListener('click', addCategory);
+                
+                saveChangesBtn.addEventListener('click', saveChanges);
+                
+                resetCategoriesBtn.addEventListener('click', resetCategories);
+                
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    adminLogout();
+                });
+                
+                // Allow Enter key to add category
+                newCategoryName.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        addCategory();
+                    }
+                });
+            }
             
-            backToTop.addEventListener('click', function() {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-            
+            // Initialize the application
             init();
+            setupEventListeners();
+            
+            // Make toggleFavorite available globally
+            window.toggleFavorite = toggleFavorite;
         });
     </script>
 </body>
