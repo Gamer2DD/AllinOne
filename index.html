@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Game Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B8B;
+            --secondary: #4ECDC4;
+            --accent: #FFD166;
+            --light: #F9F7FE;
+            --dark: #2D3047;
+            --purple: #9D4EDD;
+            --green: #06D6A0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, var(--light) 0%, #e0f7fa 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        header {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--purple) 100%);
+            padding: 20px 5%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--accent);
+            filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.1));
+        }
+
+        .logo h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.2rem;
+            color: white;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container {
+            position: relative;
+            width: 40%;
+            max-width: 400px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .search-container i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+        }
+
+        .header-decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .circle-1 {
+            width: 120px;
+            height: 120px;
+            top: -40px;
+            left: -20px;
+        }
+
+        .circle-2 {
+            width: 80px;
+            height: 80px;
+            bottom: -30px;
+            right: 10%;
+        }
+
+        .circle-3 {
+            width: 60px;
+            height: 60px;
+            top: 20px;
+            right: 20%;
+        }
+
+        main {
+            padding: 30px 5%;
+        }
+
+        .games-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .game-image {
+            height: 140px;
+            background-color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .game-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .game-card:hover .game-image img {
+            transform: scale(1.1);
+        }
+
+        .game-info {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .game-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--dark);
+            line-height: 1.3;
+        }
+
+        .play-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .play-btn:hover {
+            background: var(--purple);
+            transform: scale(1.05);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--dark);
+            font-size: 1.2rem;
+            grid-column: 1 / -1;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .message {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-container {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .games-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .game-image {
+                height: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo h1 {
+                font-size: 1.8rem;
+            }
+
+            .games-container {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+
+            .game-image {
+                height: 100px;
+            }
+
+            .game-info {
+                padding: 10px;
+            }
+
+            .game-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-decoration">
+            <div class="circle circle-1"></div>
+            <div class="circle circle-2"></div>
+            <div class="circle circle-3"></div>
+        </div>
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-gamepad"></i>
+                <h1>Kids Game Hub</h1>
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search for games...">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="message">Click on any game to start playing!</div>
+        <div class="games-container" id="gamesContainer">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading fun games...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const gamesContainer = document.getElementById('gamesContainer');
+            const searchInput = document.getElementById('searchInput');
+            
+            // Function to load and parse CSV
+            async function loadGames() {
+                try {
+                    // Using a proxy to avoid CORS issues with Google Sheets
+                    const csvUrl = 'https://docs.google.com/spreadsheets/d/1y7ihKXgUwckkwzN7h1YXjr8jNF_uH4SkRQk4u6r7u1k/export?format=csv';
+                    
+                    const response = await fetch(csvUrl);
+                    const csvText = await response.text();
+                    
+                    // Parse CSV
+                    const games = parseCSV(csvText);
+                    displayGames(games);
+                    
+                    // Set up search functionality
+                    searchInput.addEventListener('input', function() {
+                        const searchTerm = this.value.toLowerCase();
+                        const filteredGames = games.filter(game => 
+                            game.name.toLowerCase().includes(searchTerm)
+                        );
+                        displayGames(filteredGames);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading games:', error);
+                    gamesContainer.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Oops! Couldn't load the games. Please try again later.</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Simple CSV parser
+            function parseCSV(csvText) {
+                const lines = csvText.split('\n');
+                const games = [];
+                
+                // Skip header row and process each line
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // Simple CSV parsing (this may need adjustment based on your actual CSV format)
+                    const parts = line.split(',');
+                    if (parts.length >= 3) {
+                        games.push({
+                            name: parts[0].trim(),
+                            icon: parts[1].trim(),
+                            link: parts[2].trim()
+                        });
+                    }
+                }
+                
+                return games;
+            }
+            
+            // Display games in the container
+            function displayGames(games) {
+                if (games.length === 0) {
+                    gamesContainer.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-search"></i>
+                            <p>No games found. Try a different search term.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                gamesContainer.innerHTML = games.map(game => `
+                    <div class="game-card" onclick="window.open('${game.link}', '_blank')">
+                        <div class="game-image">
+                            <img src="${game.icon || 'https://via.placeholder.com/200x140/4ECDC4/FFFFFF?text=Game'}" alt="${game.name}">
+                        </div>
+                        <div class="game-info">
+                            <div class="game-title">${game.name}</div>
+                            <button class="play-btn">
+                                <i class="fas fa-play"></i> Play Now
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Load games when page is ready
+            loadGames();
+        });
+    </script>
+</body>
+</html>
