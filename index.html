@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GamesbyDD | Premium Gaming Experience</title>
+    <title>GamesbyDD | Play Free HTML Games - No Downloads</title>
+    <meta name="description" content="Play free HTML games instantly in your browser. No downloads required. Collection of action, puzzle, strategy and adventure games.">
+    
+    <!-- BRAND IDENTITY -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Firebase SDK v9 (Modular) -->
     <script type="module">
-        // =============================================
-        // FIREBASE CONFIGURATION - MODULAR V9
-        // =============================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, getDocs, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDzrJM46NhXTsfECgrWJ_-4XBdHvMex1bI",
@@ -26,26 +28,21 @@
             measurementId: "G-GGF3BGJR29"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Make Firebase available globally
         window.firebaseApp = app;
         window.firebaseDb = db;
-        window.firebaseMethods = {
-            getDoc, setDoc, onSnapshot, doc, collection
+        window.firebaseMethods = { 
+            getDoc, setDoc, onSnapshot, doc, collection, addDoc, getDocs, 
+            updateDoc, deleteDoc, query, orderBy, where, serverTimestamp 
         };
         
-        console.log('Firebase initialized successfully');
+        window.dispatchEvent(new Event('firebase-ready'));
     </script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary: #6C5CE7;
@@ -63,6 +60,8 @@
             --header-bg: linear-gradient(135deg, #6C5CE7 0%, #5649C0 100%);
             --footer-bg: #2D3436;
             --admin-bg: #1a1a2e;
+            --notification-bg: #FFEAA7;
+            --notification-unread: #FD79A8;
         }
 
         body {
@@ -72,6 +71,74 @@
             min-height: 100vh;
             line-height: 1.6;
         }
+
+        /* Hamburger Menu Styles */
+        .hamburger-menu {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+            margin-right: 15px;
+        }
+
+        .hamburger-icon { font-size: 1.5rem; }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            padding-top: 70px;
+        }
+
+        .sidebar.active { left: 0; }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .sidebar-overlay.active { display: block; }
+
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .sidebar-section h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .sidebar-links { list-style: none; }
+        .sidebar-links li { margin-bottom: 10px; }
+
+        .sidebar-links a {
+            text-decoration: none;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            transition: color 0.3s;
+        }
+
+        .sidebar-links a:hover { color: var(--primary); }
+        .sidebar-links a i { width: 20px; text-align: center; }
 
         /* Game Modal Styles */
         .game-modal {
@@ -89,9 +156,7 @@
             backdrop-filter: blur(5px);
         }
 
-        .game-modal.active {
-            display: flex;
-        }
+        .game-modal.active { display: flex; }
 
         .modal-header {
             width: 95%;
@@ -123,10 +188,7 @@
             gap: 8px;
         }
 
-        .close-game-btn:hover {
-            background: #c43075;
-            transform: scale(1.05);
-        }
+        .close-game-btn:hover { background: #c43075; transform: scale(1.05); }
 
         .iframe-container {
             width: 95%;
@@ -139,12 +201,7 @@
             position: relative;
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
+        iframe { width: 100%; height: 100%; border: none; display: block; }
 
         /* Notification Toast Styles */
         .toast {
@@ -167,23 +224,12 @@
             max-width: 300px;
         }
 
-        .toast.show {
-            transform: translateX(0);
-        }
+        .toast.show { transform: translateX(0); }
+        .toast.added { border-left-color: var(--success); }
+        .toast.removed { border-left-color: var(--error); }
+        .toast i { font-size: 1.2rem; }
 
-        .toast.added {
-            border-left-color: var(--success);
-        }
-
-        .toast.removed {
-            border-left-color: var(--error);
-        }
-
-        .toast i {
-            font-size: 1.2rem;
-        }
-
-        /* Header Styles */
+        /* CLEAN HEADER DESIGN */
         header {
             background: var(--header-bg);
             padding: 18px 5%;
@@ -193,7 +239,7 @@
             z-index: 100;
         }
 
-        .header-content {
+        .nav-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -201,74 +247,195 @@
             margin: 0 auto;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .brand { display: flex; align-items: center; gap: 12px; }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
+        .logo {
+            width: 45px;
+            height: 45px;
             background: var(--accent);
-            border-radius: 10px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             box-shadow: 0 4px 10px rgba(0, 206, 201, 0.3);
         }
 
-        .logo h1 {
+        .brand-text h1 {
             font-family: 'Poppins', sans-serif;
             font-weight: 800;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             color: white;
-            letter-spacing: -0.5px;
+            line-height: 1.2;
         }
 
-        .logo span {
-            color: var(--accent);
+        .brand-text .tagline {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 2px;
         }
 
-        .search-container {
+        .header-actions { display: flex; align-items: center; gap: 15px; }
+
+        .notification-bell {
             position: relative;
-            width: 40%;
-            max-width: 450px;
-        }
-
-        .search-container input {
-            width: 100%;
-            padding: 14px 50px 14px 20px;
-            border-radius: 50px;
-            border: none;
-            font-size: 1rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
+            cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .search-container input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .search-container input:focus {
-            outline: none;
+        .notification-bell:hover {
             background: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
         }
 
-        .search-container i {
+        .notification-badge {
             position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: -5px;
+            right: -5px;
+            background: var(--notification-unread);
             color: white;
-            font-size: 1.1rem;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
         }
+
+        /* Notification Modal Styles */
+        .notification-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .notification-modal.active { display: flex; }
+
+        .notification-container {
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .back-notification-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-notification-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .notification-list-modal {
+            flex: 1;
+            overflow-y: auto;
+            max-height: calc(80vh - 80px);
+        }
+
+        .notification-item-modal {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray-light);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .notification-item-modal:last-child { border-bottom: none; }
+        .notification-item-modal:hover { background: var(--light); }
+        .notification-item-modal.unread { background: var(--notification-bg); }
+
+        .notification-icon-modal {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .notification-content-modal { flex: 1; }
+        .notification-title-modal { font-weight: 600; margin-bottom: 5px; font-size: 0.95rem; }
+        .notification-message-modal { font-size: 0.85rem; color: var(--gray); margin-bottom: 5px; line-height: 1.4; }
+        .notification-time-modal { font-size: 0.75rem; color: var(--gray); display: flex; gap: 10px; }
+        .notification-date { font-weight: 500; }
+        .notification-dot-modal { width: 8px; height: 8px; border-radius: 50%; background: var(--notification-unread); flex-shrink: 0; margin-top: 5px; }
+
+        .no-notifications-modal {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--gray);
+        }
+
+        .no-notifications-modal i { font-size: 3rem; margin-bottom: 15px; color: var(--gray-light); }
+
+        .mark-all-read-modal {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .mark-all-read-modal:hover { background: var(--primary-dark); }
 
         /* Admin Button */
         .admin-btn {
@@ -282,7 +449,6 @@
             color: white;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-left: 10px;
         }
 
         .admin-btn:hover {
@@ -307,10 +473,7 @@
             transition: all 0.3s ease;
         }
 
-        .admin-login-modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
+        .admin-login-modal.active { opacity: 1; visibility: visible; }
 
         .login-form {
             background: white;
@@ -338,10 +501,7 @@
             font-size: 1rem;
         }
 
-        .login-form input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
+        .login-form input:focus { outline: none; border-color: var(--primary); }
 
         .login-form button {
             width: 100%;
@@ -356,9 +516,7 @@
             margin-top: 10px;
         }
 
-        .login-form button:hover {
-            background: var(--primary-dark);
-        }
+        .login-form button:hover { background: var(--primary-dark); }
 
         /* Admin Panel */
         .admin-panel {
@@ -375,9 +533,7 @@
             overflow-y: auto;
         }
 
-        .admin-panel.active {
-            right: 0;
-        }
+        .admin-panel.active { right: 0; }
 
         .admin-header {
             padding: 20px;
@@ -388,10 +544,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .admin-header h2 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
-        }
+        .admin-header h2 { font-family: 'Poppins', sans-serif; font-size: 1.5rem; }
 
         .close-admin {
             background: none;
@@ -402,17 +555,10 @@
             transition: color 0.3s ease;
         }
 
-        .close-admin:hover {
-            color: var(--accent);
-        }
+        .close-admin:hover { color: var(--accent); }
 
-        .admin-content {
-            padding: 20px;
-        }
-
-        .admin-section {
-            margin-bottom: 30px;
-        }
+        .admin-content { padding: 20px; }
+        .admin-section { margin-bottom: 30px; }
 
         .admin-section h3 {
             font-size: 1.2rem;
@@ -433,10 +579,9 @@
             font-size: 1rem;
         }
 
-        .admin-input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+        .admin-input:focus { outline: none; border-color: var(--accent); }
+
+        textarea.admin-input { min-height: 100px; resize: vertical; }
 
         .admin-btn-panel {
             background: var(--primary);
@@ -455,14 +600,9 @@
             margin-bottom: 15px;
         }
 
-        .admin-btn-panel:hover {
-            background: var(--primary-dark);
-        }
+        .admin-btn-panel:hover { background: var(--primary-dark); }
 
-        .category-list {
-            list-style: none;
-            margin-top: 15px;
-        }
+        .category-list { list-style: none; margin-top: 15px; }
 
         .category-item {
             display: flex;
@@ -474,10 +614,7 @@
             margin-bottom: 10px;
         }
 
-        .category-actions {
-            display: flex;
-            gap: 10px;
-        }
+        .category-actions { display: flex; gap: 10px; }
 
         .category-actions button {
             background: none;
@@ -488,17 +625,10 @@
             transition: color 0.3s ease;
         }
 
-        .category-actions .edit-btn:hover {
-            color: var(--accent);
-        }
+        .category-actions .edit-btn:hover { color: var(--accent); }
+        .category-actions .delete-btn:hover { color: var(--error); }
 
-        .category-actions .delete-btn:hover {
-            color: var(--error);
-        }
-
-        .game-category-editor {
-            margin-top: 20px;
-        }
+        .game-category-editor { margin-top: 20px; }
 
         .game-item {
             display: flex;
@@ -526,11 +656,43 @@
             padding: 5px 10px;
         }
 
-        /* Hero Section */
+        /* Notification Management Section */
+        .notification-management { margin-top: 20px; }
+
+        .notification-item-admin {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .notification-content-admin { flex: 1; margin-right: 15px; }
+        .notification-title-admin { font-weight: 600; margin-bottom: 5px; font-size: 1rem; }
+        .notification-message-admin { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 8px; line-height: 1.4; }
+        .notification-meta-admin { font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); display: flex; gap: 10px; }
+        .notification-actions-admin { display: flex; gap: 10px; }
+
+        .delete-notification-btn {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s;
+        }
+
+        .delete-notification-btn:hover { background: #c43075; }
+
+        /* HERO SECTION */
         .hero {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
-            padding: 80px 5%;
+            padding: 4rem 5%;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -545,165 +707,100 @@
 
         .hero h2 {
             font-family: 'Poppins', sans-serif;
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 800;
-            margin-bottom: 20px;
+            margin-bottom: 1rem;
             line-height: 1.2;
         }
 
         .hero p {
             font-size: 1.2rem;
-            margin-bottom: 30px;
+            margin-bottom: 2rem;
             opacity: 0.9;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
         }
 
-        .hero-btns {
+        .hero-features {
             display: flex;
-            gap: 15px;
             justify-content: center;
-            margin-top: 30px;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
         }
 
-        .btn {
-            padding: 14px 28px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
+        .feature {
+            display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.95rem;
         }
 
-        .btn-primary {
-            background: var(--accent);
-            color: var(--dark);
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 206, 201, 0.3);
-        }
+        .feature i { color: var(--accent); }
 
-        .btn-primary:hover {
-            background: #00B7B2;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 206, 201, 0.4);
-        }
-
-        .hero-decoration {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            opacity: 0.1;
-        }
-
-        .circle {
-            position: absolute;
-            border-radius: 50%;
-            background: white;
-        }
-
-        .circle-1 {
-            width: 200px;
-            height: 200px;
-            top: -80px;
-            left: -50px;
-        }
-
-        .circle-2 {
-            width: 150px;
-            height: 150px;
-            bottom: -60px;
-            right: 10%;
-        }
-
-        .circle-3 {
-            width: 100px;
-            height: 100px;
-            top: 20%;
-            right: 20%;
-        }
-
-        /* Main Content */
+        /* MAIN CONTENT LAYOUT */
         main {
-            padding: 40px 5%;
+            padding: 2rem 5%;
             max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* Tab System */
-        .section-tabs {
+        /* TAB SYSTEM */
+        .section-header {
             display: flex;
-            gap: 30px;
-            align-items: baseline;
-            margin-bottom: 30px;
-            margin-top: 20px;
-            border-bottom: 2px solid var(--gray-light);
-            padding-bottom: 10px;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
-        .tab-item {
+        .section-title {
             font-family: 'Poppins', sans-serif;
             font-size: 1.8rem;
             font-weight: 700;
-            color: var(--gray);
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s ease;
-            padding-bottom: 10px;
-            margin-bottom: -12px;
-        }
-
-        .tab-item:hover {
-            color: var(--primary);
-        }
-
-        .tab-item.active {
             color: var(--dark);
         }
 
-        .tab-item.active:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--accent);
-            border-radius: 2px;
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid var(--gray-light);
         }
 
-        .fav-count {
-            font-size: 1rem;
-            background: var(--secondary);
-            color: white;
-            padding: 2px 10px;
-            border-radius: 50px;
-            vertical-align: middle;
+        .tab {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab .badge {
+            background: var(--gray-light);
+            color: var(--dark);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
             margin-left: 5px;
         }
 
-        /* Filters */
+        .tab.active .badge { background: var(--secondary); color: white; }
+
+        /* FILTERS */
         .filters {
             display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 1rem;
+            margin-bottom: 2rem;
             flex-wrap: wrap;
         }
 
-        .filters.hidden {
-            display: none;
-        }
-
-        .filter-btn {
-            padding: 10px 20px;
-            border-radius: 50px;
-            background: var(--card-bg);
+        .filter {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: white;
             border: 1px solid var(--gray-light);
             color: var(--gray);
             font-weight: 500;
@@ -711,116 +808,95 @@
             transition: all 0.3s ease;
         }
 
-        .filter-btn.active, .filter-btn:hover {
+        .filter.active {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
         }
 
-        /* Games Grid - FIXED: Removed grid-auto-rows to prevent stretching */
+        /* GAMES GRID - 5 PER ROW, 2 ROWS */
         .games-container {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, auto);
             gap: 25px;
+            margin-bottom: 2rem;
             min-height: 600px;
-            align-content: start;
         }
 
-        /* FIXED: Changed height from 100% to auto to prevent stretching */
         .game-card {
-            background: var(--card-bg);
-            border-radius: 16px;
+            background: white;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
-            position: relative;
+            border: 1px solid var(--gray-light);
             display: flex;
             flex-direction: column;
-            height: auto; /* FIXED: Changed from 100% to auto */
-            border: 1px solid var(--gray-light);
-            cursor: pointer;
         }
 
         .game-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
         }
 
-        .game-badge {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: var(--accent);
-            color: white;
-            font-size: 0.8rem;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 50px;
-            z-index: 2;
-        }
-
-        /* Favorite Button on Card */
-        .fav-btn {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            width: 32px;
-            height: 32px;
-            background: rgba(255,255,255,0.9);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 3;
-            transition: all 0.2s;
-            color: var(--gray);
-        }
-
-        .fav-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .fav-btn.active {
-            color: var(--error);
-            background: white;
-            box-shadow: 0 2px 8px rgba(232, 67, 147, 0.3);
+        .game-header {
+            position: relative;
+            height: 160px;
+            overflow: hidden;
         }
 
         .game-image {
-            height: 160px;
-            background-color: var(--gray-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .game-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.5s ease;
         }
 
-        .game-card:hover .game-image img {
-            transform: scale(1.08);
+        .game-card:hover .game-image { transform: scale(1.05); }
+
+        .game-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
 
-        .game-info {
-            padding: 20px;
+        .favorite-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.2s ease;
+        }
+
+        .favorite-btn.active { color: var(--error); }
+        .favorite-btn:hover { transform: scale(1.1); }
+
+        .game-content {
+            padding: 1.25rem;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
         }
 
         .game-title {
             font-weight: 600;
             font-size: 1.1rem;
-            margin-bottom: 8px;
-            color: var(--dark);
+            margin-bottom: 0.5rem;
             line-height: 1.4;
         }
 
@@ -829,34 +905,28 @@
             justify-content: space-between;
             color: var(--gray);
             font-size: 0.85rem;
-            margin-bottom: 15px;
+            margin-bottom: 1rem;
         }
 
         .play-btn {
+            padding: 0.75rem;
             background: var(--primary);
             color: white;
             border: none;
-            padding: 12px 20px;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 0.95rem;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-top: 10px;
-            text-decoration: none;
+            margin-top: auto;
         }
 
-        .play-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
-        }
+        .play-btn:hover { background: var(--primary-dark); }
 
-        /* Pagination Controls */
+        /* PAGINATION CONTROLS */
         .pagination {
             display: flex;
             justify-content: center;
@@ -920,12 +990,12 @@
             color: var(--primary);
         }
 
-        /* Footer */
+        /* FOOTER */
         footer {
             background: var(--footer-bg);
             color: white;
-            padding: 60px 5% 30px;
-            margin-top: 80px;
+            padding: 3rem 5% 1.5rem;
+            margin-top: 3rem;
         }
 
         .footer-content {
@@ -933,24 +1003,19 @@
             margin: 0 auto;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
 
         .footer-column h4 {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.3rem;
-            margin-bottom: 20px;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
             color: var(--accent);
         }
 
-        .footer-column ul {
-            list-style: none;
-        }
-
-        .footer-column ul li {
-            margin-bottom: 12px;
-        }
+        .footer-column ul { list-style: none; }
+        .footer-column ul li { margin-bottom: 0.5rem; }
 
         .footer-column ul li a {
             color: var(--gray-light);
@@ -958,19 +1023,13 @@
             transition: color 0.3s ease;
         }
 
-        .footer-column ul li a:hover {
-            color: var(--accent);
-        }
+        .footer-column ul li a:hover { color: var(--accent); }
 
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
+        .social-links { display: flex; gap: 1rem; margin-top: 1rem; }
 
         .social-link {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.1);
             display: flex;
@@ -980,14 +1039,11 @@
             transition: all 0.3s ease;
         }
 
-        .social-link:hover {
-            background: var(--accent);
-            transform: translateY(-3px);
-        }
+        .social-link:hover { background: var(--accent); transform: translateY(-2px); }
 
-        .copyright {
+        .footer-bottom {
             text-align: center;
-            padding-top: 30px;
+            padding-top: 1.5rem;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--gray-light);
             font-size: 0.9rem;
@@ -1014,118 +1070,93 @@
             visibility: hidden;
         }
 
-        .back-to-top.show {
-            opacity: 1;
-            visibility: visible;
+        .back-to-top.show { opacity: 1; visibility: visible; }
+        .back-to-top:hover { background: var(--primary-dark); transform: translateY(-3px); }
+
+        /* Search bar in main content */
+        .main-search-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 1.5rem;
         }
 
-        .back-to-top:hover {
-            background: var(--primary-dark);
-            transform: translateY(-3px);
+        .main-search-container input {
+            width: 100%;
+            padding: 14px 50px 14px 20px;
+            border-radius: 50px;
+            border: 1px solid var(--gray-light);
+            font-size: 1rem;
+            background: white;
+            color: var(--dark);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
-        /* Responsive Design - FIXED: Removed grid-auto-rows from all breakpoints */
-        @media (max-width: 1200px) {
-            .games-container {
-                grid-template-columns: repeat(4, 1fr);
-            }
+        .main-search-container input::placeholder { color: var(--gray); }
+
+        .main-search-container input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.15);
         }
 
-        @media (max-width: 992px) {
-            .games-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
+        .main-search-container i {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 1.1rem;
         }
 
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 1200px) { .games-container { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 992px) { .games-container { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            .search-container {
-                width: 100%;
-                max-width: 100%;
-            }
-
-            .hero h2 {
-                font-size: 2.2rem;
-            }
-
-            .hero-btns {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .btn {
-                width: 100%;
-                max-width: 250px;
-                justify-content: center;
-            }
-
-            .games-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .game-image {
-                height: 140px;
-            }
-
-            .section-tabs {
-                gap: 20px;
-            }
-            
-            .tab-item {
-                font-size: 1.4rem;
-            }
-            
-            .iframe-container {
-                height: 80vh;
-                width: 95%;
-            }
-
-            .admin-panel {
-                width: 100%;
-                right: -100%;
-            }
+            .nav-container { flex-direction: column; gap: 1rem; }
+            .hero h2 { font-size: 2rem; }
+            .hero p { font-size: 1rem; }
+            .section-header { flex-direction: column; align-items: flex-start; }
+            .tabs { width: 100%; overflow-x: auto; }
+            .games-container { grid-template-columns: repeat(2, 1fr); }
+            .iframe-container { height: 80vh; width: 95%; }
+            .admin-panel { width: 100%; right: -100%; }
+            .sidebar { width: 280px; left: -280px; }
         }
-
         @media (max-width: 480px) {
-            .games-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .logo h1 {
-                font-size: 1.5rem;
-            }
-
-            .hero h2 {
-                font-size: 1.8rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-            }
-
-            .game-image {
-                height: 120px;
-            }
-
-            .game-info {
-                padding: 15px;
-            }
-
-            .game-title {
-                font-size: 1rem;
-            }
-
-            .section-title {
-                font-size: 1.6rem;
-            }
+            .games-container { grid-template-columns: 1fr; }
+            .logo h1 { font-size: 1.5rem; }
+            .hero h2 { font-size: 1.8rem; }
+            .hero p { font-size: 1rem; }
+            .game-header { height: 120px; }
+            .game-content { padding: 15px; }
+            .game-title { font-size: 1rem; }
+            .section-title { font-size: 1.6rem; }
+            .sidebar { width: 100%; left: -100%; }
         }
     </style>
 </head>
 <body>
+    <!-- Sidebar for hamburger menu -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <h3>Quick Links</h3>
+            <ul class="sidebar-links">
+                <li><a href="#" onclick="switchTab('all'); closeSidebar(); return false;"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="#" onclick="switchTab('all'); closeSidebar(); return false;"><i class="fas fa-gamepad"></i> All Games</a></li>
+                <li><a href="#" onclick="switchTab('fav'); closeSidebar(); return false;"><i class="fas fa-heart"></i> Favorites</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-section">
+            <h3>Categories</h3>
+            <ul class="sidebar-links" id="sidebarCategories">
+                <!-- Categories will be populated dynamically -->
+            </ul>
+        </div>
+    </div>
+
     <!-- Game Player Modal (Popup) -->
     <div id="gameModal" class="game-modal">
         <div class="modal-header">
@@ -1137,6 +1168,24 @@
         <div class="iframe-container">
             <!-- This iframe loads the game -->
             <iframe id="gameFrame" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="notification-modal" id="notificationModal">
+        <div class="notification-container">
+            <div class="notification-header">
+                <h2>Notifications</h2>
+                <button class="back-notification-btn" id="backNotificationBtn">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+            <div class="notification-list-modal" id="notificationListModal">
+                <!-- Notifications will be added here dynamically -->
+            </div>
+            <div style="padding: 15px; text-align: center; border-top: 1px solid var(--gray-light);">
+                <button class="mark-all-read-modal" id="markAllReadModal">Mark All as Read</button>
+            </div>
         </div>
     </div>
 
@@ -1165,6 +1214,23 @@
             </button>
         </div>
         <div class="admin-content">
+            <div class="admin-section">
+                <h3>Send Notification</h3>
+                <input type="text" class="admin-input" id="notificationTitle" placeholder="Notification Title">
+                <textarea class="admin-input" id="notificationMessage" placeholder="Notification Message"></textarea>
+                <button class="admin-btn-panel" id="sendNotificationBtn">
+                    <i class="fas fa-bell"></i> Send Notification to All Users
+                </button>
+            </div>
+            
+            <!-- Notification Management -->
+            <div class="admin-section">
+                <h3>Notification Management</h3>
+                <div class="notification-management" id="notificationManagement">
+                    <!-- Notifications for deletion will be added here dynamically -->
+                </div>
+            </div>
+            
             <div class="admin-section">
                 <h3>Category Management</h3>
                 <input type="text" class="admin-input" id="newCategoryName" placeholder="New category name">
@@ -1200,80 +1266,113 @@
         </div>
     </div>
 
+    <!-- CLEAN HEADER NAVIGATION -->
     <header>
-        <div class="header-content">
-            <div class="logo">
-                <div class="logo-icon">
+        <div class="nav-container">
+            <div class="brand">
+                <div class="hamburger-menu" id="hamburgerMenu">
+                    <i class="fas fa-bars hamburger-icon"></i>
+                </div>
+                <div class="logo">
                     <i class="fas fa-dice-d20"></i>
                 </div>
-                <h1>Gamesby<span>DD</span></h1>
+                <div class="brand-text">
+                    <h1>GamesbyDD</h1>
+                    <div class="tagline">Play Free HTML Games - No Downloads</div>
+                </div>
             </div>
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search for games...">
-                <i class="fas fa-search"></i>
-            </div>
-            <div class="admin-btn" id="adminBtn">
-                <i class="fas fa-user-shield"></i>
+            <div class="header-actions">
+                <!-- Notification Bell -->
+                <div class="notification-bell" id="notificationBell">
+                    <i class="fas fa-bell"></i>
+                    <div class="notification-badge" id="notificationBadge" style="display: none;">0</div>
+                </div>
+                
+                <!-- Admin Button -->
+                <div class="admin-btn" id="adminBtn">
+                    <i class="fas fa-user-shield"></i>
+                </div>
             </div>
         </div>
     </header>
 
+    <!-- HERO SECTION -->
     <section class="hero">
-        <div class="hero-decoration">
-            <div class="circle circle-1"></div>
-            <div class="circle circle-2"></div>
-            <div class="circle circle-3"></div>
-        </div>
         <div class="hero-content">
-            <h2>Discover Amazing Games</h2>
-            <p>Explore our curated collection of premium games. From action-packed adventures to brain-teasing puzzles, find your next favorite game.</p>
-            <div class="hero-btns">
-                <button class="btn btn-primary" id="exploreBtn">
-                    <i class="fas fa-play"></i> Explore Games
-                </button>
+            <h2>Play Free HTML Games Instantly</h2>
+            <p>No downloads, no installations. Just click and play in your browser. Curated collection of the best HTML5 games.</p>
+            
+            <div class="hero-features">
+                <div class="feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>100% Free</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>No Downloads</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Mobile Friendly</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Live Notifications</span>
+                </div>
             </div>
         </div>
     </section>
 
+    <!-- MAIN CONTENT -->
     <main>
-        <!-- Navigation Tabs -->
-        <div class="section-tabs" id="gameTabs">
-            <div class="tab-item active" id="tabAll" onclick="switchTab('all')">All Games</div>
-            <div class="tab-item" id="tabFav" onclick="switchTab('fav')">
-                Favorites <span class="fav-count" id="favCount">0</span>
+        <!-- Default Game View -->
+        <div id="gameView" class="active-view">
+            <div class="section-header">
+                <h2 class="section-title">Game Collection</h2>
+                <div class="main-search-container">
+                    <input type="text" id="searchInput" placeholder="Search for games...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('all')">All Games</div>
+                    <div class="tab" onclick="switchTab('fav')">
+                        Favorites <span class="badge" id="favTabCount">0</span>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Category Filters (Visible only on All Games) -->
-        <div class="filters" id="categoryFilters">
-            <!-- Filter buttons will be generated dynamically -->
-        </div>
-
-        <!-- Games Grid -->
-        <div class="games-container" id="gamesContainer">
-            <div class="loading">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Loading amazing games...</p>
+            <!-- CATEGORY FILTERS -->
+            <div class="filters" id="categoryFilters">
+                <!-- Filters will be populated dynamically -->
             </div>
-        </div>
 
-        <!-- Pagination Controls -->
-        <div class="pagination" id="paginationControls">
-            <button class="page-btn" id="prevPageBtn" disabled>
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <div class="page-info" id="pageInfo">Page 1 of 1</div>
-            <button class="page-btn" id="nextPageBtn" disabled>
-                <i class="fas fa-chevron-right"></i>
-            </button>
+            <!-- GAMES GRID -->
+            <div class="games-container" id="gamesContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading amazing games...</p>
+                </div>
+            </div>
+
+            <!-- PAGINATION CONTROLS -->
+            <div class="pagination" id="paginationControls">
+                <button class="page-btn" id="prevPageBtn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="page-info" id="pageInfo">Page 1 of 1</div>
+                <button class="page-btn" id="nextPageBtn" disabled>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
         </div>
     </main>
 
+    <!-- FOOTER -->
     <footer>
         <div class="footer-content">
             <div class="footer-column">
                 <h4>GamesbyDD</h4>
-                <p>Your premier destination for high-quality browser games. Discover, play, and enjoy!</p>
+                <p>Your destination for free HTML games. Play instantly in your browser with no downloads required.</p>
                 <div class="social-links">
                     <a href="https://www.instagram.com/_ffgamer2dd?igsh=MW1ndG5hN3dqOXVvZw==" class="social-link" target="_blank">
                         <i class="fab fa-instagram"></i>
@@ -1283,22 +1382,8 @@
                     </a>
                 </div>
             </div>
-            <div class="footer-column">
-                <h4>Quick Links</h4>
-                <ul>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#" onclick="switchTab('all')">All Games</a></li>
-                    <li><a href="#" onclick="switchTab('fav')">Favorites</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h4>Categories</h4>
-                <ul id="footerCategories">
-                    <!-- Categories will be added dynamically -->
-                </ul>
-            </div>
         </div>
-        <div class="copyright">
+        <div class="footer-bottom">
             <p>&copy; 2025 GamesbyDD. All rights reserved.</p>
         </div>
     </footer>
@@ -1309,21 +1394,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
-            // Wait for Firebase to initialize
-            while (!window.firebaseDb) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-
+            // Core elements
             const gamesContainer = document.getElementById('gamesContainer');
             const searchInput = document.getElementById('searchInput');
-            const favCount = document.getElementById('favCount');
+            const favTabCount = document.getElementById('favTabCount');
             const backToTop = document.getElementById('backToTop');
             const categoryFilters = document.getElementById('categoryFilters');
-            const tabAll = document.getElementById('tabAll');
-            const tabFav = document.getElementById('tabFav');
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            const footerCategories = document.getElementById('footerCategories');
+            
+            // View elements
+            const gameView = document.getElementById('gameView');
             
             // Pagination elements
             const paginationControls = document.getElementById('paginationControls');
@@ -1335,6 +1414,14 @@
             const gameModal = document.getElementById('gameModal');
             const gameFrame = document.getElementById('gameFrame');
             const modalGameTitle = document.getElementById('modalGameTitle');
+            
+            // Notification Elements
+            const notificationModal = document.getElementById('notificationModal');
+            const notificationBell = document.getElementById('notificationBell');
+            const notificationBadge = document.getElementById('notificationBadge');
+            const notificationListModal = document.getElementById('notificationListModal');
+            const backNotificationBtn = document.getElementById('backNotificationBtn');
+            const markAllReadModal = document.getElementById('markAllReadModal');
             
             // Admin elements
             const adminBtn = document.getElementById('adminBtn');
@@ -1352,6 +1439,18 @@
             const resetCategoriesBtn = document.getElementById('resetCategoriesBtn');
             const logoutBtn = document.getElementById('logoutBtn');
             
+            // Notification Admin Elements
+            const notificationTitle = document.getElementById('notificationTitle');
+            const notificationMessage = document.getElementById('notificationMessage');
+            const sendNotificationBtn = document.getElementById('sendNotificationBtn');
+            const notificationManagement = document.getElementById('notificationManagement');
+            
+            // Hamburger Menu Elements
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarCategories = document.getElementById('sidebarCategories');
+            
             let toastTimeout;
             
             // State
@@ -1363,14 +1462,25 @@
             let gameCategories = {}; // Will be loaded from Firebase
             let isAdmin = localStorage.getItem('gamesbydd_admin') === 'true';
             let unsubscribeFromFirestore = null;
+            let unsubscribeFromNotifications = null;
             
-            // Pagination state
+            // Notification State
+            let notifications = [];
+            let unreadCount = 0;
+            
+            // Pagination state - 5 games per row × 2 rows = 10 games per page
             let currentPage = 1;
-            const gamesPerPage = 10; // 5 columns × 2 rows
+            const gamesPerPage = 10;
 
-            // Firebase references
-            const db = window.firebaseDb;
-            const { getDoc, setDoc, onSnapshot, doc } = window.firebaseMethods;
+            // Wait for Firebase Module to be Ready or Timeout gracefully
+            async function waitForFirebase() {
+                let checks = 0;
+                while (!window.firebaseDb && checks < 20) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    checks++;
+                }
+                return window.firebaseDb;
+            }
 
             // =============================================
             // FIREBASE FUNCTIONS - MODULAR V9
@@ -1378,6 +1488,10 @@
             
             // Load categories and game categories from Firestore
             async function loadFromFirestore() {
+                if (!window.firebaseDb) return false;
+                const { getDoc, doc } = window.firebaseMethods;
+                const db = window.firebaseDb;
+
                 try {
                     const docRef = doc(db, 'settings', 'categories');
                     const docSnap = await getDoc(docRef);
@@ -1386,16 +1500,12 @@
                         const data = docSnap.data();
                         categories = data.categories || categories;
                         gameCategories = data.gameCategories || {};
-                        console.log('Loaded from Firestore:', data);
                         return true;
                     } else {
-                        // Create initial document if it doesn't exist
                         await saveToFirestore();
                         return true;
                     }
                 } catch (error) {
-                    console.error('Error loading from Firestore:', error);
-                    // Fallback to localStorage
                     const storedCategories = localStorage.getItem('gamesbydd_categories');
                     const storedGameCategories = localStorage.getItem('gamesbydd_game_categories');
                     
@@ -1408,28 +1518,33 @@
 
             // Save categories and game categories to Firestore
             async function saveToFirestore() {
+                if (!window.firebaseDb) {
+                     localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
+                     localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
+                     return false;
+                }
+                const { setDoc, doc } = window.firebaseMethods;
+                const db = window.firebaseDb;
+
                 try {
                     await setDoc(doc(db, 'settings', 'categories'), {
                         categories: categories,
                         gameCategories: gameCategories,
                         lastUpdated: new Date()
                     });
-                    console.log('Saved to Firestore successfully');
                     return true;
                 } catch (error) {
-                    console.error('Error saving to Firestore:', error);
-                    // Fallback to localStorage
-                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
-                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
                     return false;
                 }
             }
 
             // Set up real-time listener for Firestore changes
             function setupFirestoreListener() {
-                if (unsubscribeFromFirestore) {
-                    unsubscribeFromFirestore(); // Clean up previous listener
-                }
+                if (!window.firebaseDb) return;
+                const { onSnapshot, doc } = window.firebaseMethods;
+                const db = window.firebaseDb;
+
+                if (unsubscribeFromFirestore) unsubscribeFromFirestore();
 
                 const docRef = doc(db, 'settings', 'categories');
                 
@@ -1439,49 +1554,247 @@
                         const newCategories = data.categories || categories;
                         const newGameCategories = data.gameCategories || {};
                         
-                        // Only update if data actually changed
                         if (JSON.stringify(newCategories) !== JSON.stringify(categories) || 
                             JSON.stringify(newGameCategories) !== JSON.stringify(gameCategories)) {
                             
                             categories = newCategories;
                             gameCategories = newGameCategories;
-                            
-                            // Update UI
                             updateCategories();
                             renderCurrentView();
-                            
-                            // Show notification to users (but not to admin who made the change)
-                            if (!isAdmin) {
-                                showToast('Categories updated!', 'added');
-                            }
                         }
                     }
-                }, (error) => {
-                    console.error('Firestore listener error:', error);
+                }, (error) => {});
+            }
+
+            // Set up real-time listener for notifications
+            function setupNotificationsListener() {
+                if (!window.firebaseDb) return;
+                const { onSnapshot, collection, query, orderBy } = window.firebaseMethods;
+                const db = window.firebaseDb;
+
+                if (unsubscribeFromNotifications) unsubscribeFromNotifications();
+
+                const notificationsRef = collection(db, 'notifications');
+                const q = query(notificationsRef, orderBy('timestamp', 'desc'));
+                
+                unsubscribeFromNotifications = onSnapshot(q, (querySnapshot) => {
+                    notifications = [];
+                    unreadCount = 0;
+                    
+                    querySnapshot.forEach((doc) => {
+                        const notification = { id: doc.id, ...doc.data() };
+                        notifications.push(notification);
+                        const readNotifications = JSON.parse(localStorage.getItem('gamesbydd_read_notifications') || '[]');
+                        if (!readNotifications.includes(doc.id)) unreadCount++;
+                    });
+                    
+                    updateNotificationBadge();
+                    renderNotifications();
+                    if (isAdmin) updateNotificationManagement();
+                }, (error) => {});
+            }
+
+            async function sendNotification(title, message, type) {
+                if (!window.firebaseDb) {
+                    showToast('Database not connected', 'removed');
+                    return;
+                }
+                if (!title || !message) {
+                    showToast('Please fill in both title and message', 'removed');
+                    return;
+                }
+                
+                const { addDoc, collection, serverTimestamp } = window.firebaseMethods;
+                const db = window.firebaseDb;
+
+                try {
+                    await addDoc(collection(db, 'notifications'), {
+                        title: title,
+                        message: message,
+                        type: type,
+                        timestamp: serverTimestamp(),
+                        sentBy: 'Admin'
+                    });
+                    
+                    showToast('Notification sent to all users!', 'added');
+                    notificationTitle.value = '';
+                    notificationMessage.value = '';
+                } catch (error) {
+                    showToast('Failed to send notification', 'removed');
+                }
+            }
+
+            async function deleteNotification(notificationId) {
+                if (!window.firebaseDb) return;
+                const { deleteDoc, doc } = window.firebaseMethods;
+                const db = window.firebaseDb;
+
+                try {
+                    await deleteDoc(doc(db, 'notifications', notificationId));
+                    showToast('Notification deleted successfully!', 'added');
+                } catch (error) {
+                    showToast('Failed to delete notification', 'removed');
+                }
+            }
+
+            function markNotificationAsRead(notificationId) {
+                const readNotifications = JSON.parse(localStorage.getItem('gamesbydd_read_notifications') || '[]');
+                if (!readNotifications.includes(notificationId)) {
+                    readNotifications.push(notificationId);
+                    localStorage.setItem('gamesbydd_read_notifications', JSON.stringify(readNotifications));
+                    unreadCount = Math.max(0, unreadCount - 1);
+                    updateNotificationBadge();
+                    
+                    const notificationItem = document.querySelector(`.notification-item-modal[data-id="${notificationId}"]`);
+                    if (notificationItem) {
+                        notificationItem.classList.remove('unread');
+                        const dot = notificationItem.querySelector('.notification-dot-modal');
+                        if (dot) dot.style.display = 'none';
+                    }
+                }
+            }
+
+            function markAllNotificationsAsRead() {
+                const readNotifications = JSON.parse(localStorage.getItem('gamesbydd_read_notifications') || '[]');
+                notifications.forEach(notification => {
+                    if (!readNotifications.includes(notification.id)) {
+                        readNotifications.push(notification.id);
+                    }
                 });
+                localStorage.setItem('gamesbydd_read_notifications', JSON.stringify(readNotifications));
+                unreadCount = 0;
+                updateNotificationBadge();
+                renderNotifications();
+                showToast('All notifications marked as read', 'added');
+            }
+
+            function updateNotificationBadge() {
+                if (unreadCount > 0) {
+                    notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    notificationBadge.style.display = 'flex';
+                } else {
+                    notificationBadge.style.display = 'none';
+                }
+            }
+
+            function renderNotifications() {
+                if (notifications.length === 0) {
+                    notificationListModal.innerHTML = `<div class="no-notifications-modal"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
+                    return;
+                }
+                const readNotifications = JSON.parse(localStorage.getItem('gamesbydd_read_notifications') || '[]');
+                let notificationsHTML = '';
+                notifications.forEach(notification => {
+                    const isUnread = !readNotifications.includes(notification.id);
+                    const timeAgo = getTimeAgo(notification.timestamp?.toDate() || new Date());
+                    const dateString = getFormattedDate(notification.timestamp?.toDate() || new Date());
+                    const iconClass = getNotificationIcon(notification.type);
+                    notificationsHTML += `
+                        <div class="notification-item-modal ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
+                            <div class="notification-icon-modal"><i class="${iconClass}"></i></div>
+                            <div class="notification-content-modal">
+                                <div class="notification-title-modal">${notification.title || 'Notification'}</div>
+                                <div class="notification-message-modal">${notification.message || ''}</div>
+                                <div class="notification-time-modal"><span class="notification-date">${dateString}</span><span>${timeAgo}</span></div>
+                            </div>
+                            ${isUnread ? '<div class="notification-dot-modal"></div>' : ''}
+                        </div>
+                    `;
+                });
+                notificationListModal.innerHTML = notificationsHTML;
+                document.querySelectorAll('.notification-item-modal').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const notificationId = this.getAttribute('data-id');
+                        markNotificationAsRead(notificationId);
+                    });
+                });
+            }
+
+            function updateNotificationManagement() {
+                if (notifications.length === 0) {
+                    notificationManagement.innerHTML = `<p style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">No notifications to manage</p>`;
+                    return;
+                }
+                let managementHTML = '';
+                notifications.forEach(notification => {
+                    const timeAgo = getTimeAgo(notification.timestamp?.toDate() || new Date());
+                    const dateString = getFormattedDate(notification.timestamp?.toDate() || new Date());
+                    managementHTML += `
+                        <div class="notification-item-admin">
+                            <div class="notification-content-admin">
+                                <div class="notification-title-admin">${notification.title || 'Notification'}</div>
+                                <div class="notification-message-admin">${notification.message || ''}</div>
+                                <div class="notification-meta-admin"><span>${dateString}</span><span>${timeAgo}</span></div>
+                            </div>
+                            <div class="notification-actions-admin">
+                                <button class="delete-notification-btn" data-id="${notification.id}"><i class="fas fa-trash"></i> Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                notificationManagement.innerHTML = managementHTML;
+                document.querySelectorAll('.delete-notification-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const notificationId = this.getAttribute('data-id');
+                        if (confirm('Are you sure you want to delete this notification?')) {
+                            deleteNotification(notificationId);
+                        }
+                    });
+                });
+            }
+
+            function getNotificationIcon(type) {
+                switch(type) {
+                    case 'success': return 'fas fa-check-circle';
+                    case 'warning': return 'fas fa-exclamation-triangle';
+                    case 'error': return 'fas fa-exclamation-circle';
+                    default: return 'fas fa-info-circle';
+                }
+            }
+
+            function getTimeAgo(date) {
+                const now = new Date();
+                const diffMs = now - date;
+                const diffSecs = Math.floor(diffMs / 1000);
+                const diffMins = Math.floor(diffSecs / 60);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffSecs < 60) return 'Just now';
+                if (diffMins < 60) return `${diffMins} min ago`;
+                if (diffHours < 24) return `${diffHours} hr ago`;
+                if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                return date.toLocaleDateString();
+            }
+
+            function getFormattedDate(date) {
+                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
             }
 
             // Initialize
             async function init() {
-                // First load from Firestore
-                await loadFromFirestore();
-                
-                // Then load games
-                await loadGames();
-                
-                // Set up real-time listener
+                await waitForFirebase();
+                const loadGamesPromise = loadGames();
+                const loadFirestorePromise = loadFromFirestore();
+                await loadGamesPromise;
                 setupFirestoreListener();
-                
+                setupNotificationsListener();
                 updateFavCount();
                 updateCategories();
-                
-                // Show admin button if already logged in as admin
-                if (isAdmin) {
-                    adminBtn.style.display = 'flex';
-                }
+                if (isAdmin) adminBtn.style.display = 'flex';
             }
 
-            // --- Game Player Functions ---
+            function openSidebar() {
+                sidebar.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+
             window.openGameModal = function(url, title) {
                 gameFrame.src = url;
                 modalGameTitle.textContent = title;
@@ -1495,20 +1808,16 @@
                 document.body.style.overflow = 'auto';
             };
 
-            // Close modal if clicking outside content
             gameModal.addEventListener('click', function(e) {
-                if(e.target === gameModal) {
-                    closeGameModal();
-                }
+                if(e.target === gameModal) closeGameModal();
             });
 
-            // Show Toast Notification
             function showToast(message, type) {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
                 toastMessage.textContent = message;
-                
                 toast.className = 'toast show';
                 toast.classList.add(type); 
-                
                 const icon = toast.querySelector('i');
                 if(type === 'added') {
                     icon.className = 'fas fa-check-circle';
@@ -1517,59 +1826,34 @@
                     icon.className = 'fas fa-trash-alt';
                     icon.style.color = 'var(--error)';
                 }
-
                 if (toastTimeout) clearTimeout(toastTimeout);
-                
-                toastTimeout = setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 3000);
+                toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
             }
 
-            // Fetch Games from CSV
             async function loadGames() {
                 try {
                     const csvUrl = 'https://docs.google.com/spreadsheets/d/1y7ihKXgUwckkwzN7h1YXjr8jNF_uH4SkRQk4u6r7u1k/export?format=csv';
-                    
                     const response = await fetch(csvUrl);
-                    
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch CSV');
-                    }
-                    
+                    if (!response.ok) throw new Error('Failed to fetch CSV');
                     const csvText = await response.text();
-                    const games = parseCSV(csvText);
-                    allGamesData = games;
-                    
-                    // Initialize game categories for games that don't have them
+                    allGamesData = parseCSV(csvText);
                     initializeGameCategories();
-                    
                     renderCurrentView();
-                    
                 } catch (error) {
-                    console.error('Error loading games:', error);
-                    gamesContainer.innerHTML = `
-                        <div class="no-results">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <p>Failed to load games. Please check your internet connection.</p>
-                        </div>
-                    `;
+                    gamesContainer.innerHTML = `<div class="no-results"><i class="fas fa-exclamation-triangle"></i><p>Failed to load games.</p></div>`;
                 }
             }
 
             function parseCSV(csvText) {
                 const lines = csvText.split('\n');
                 const games = [];
-                
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
-                    
                     const parts = line.split(',');
                     if (parts.length >= 3) {
-                        const id = i;
-                        
                         games.push({
-                            id: id,
+                            id: i,
                             name: parts[0].trim(),
                             icon: parts[1].trim() || 'https://via.placeholder.com/400x300?text=Game',
                             link: parts[2].trim()
@@ -1579,36 +1863,30 @@
                 return games;
             }
 
-            // Initialize game categories for games that don't have them
             function initializeGameCategories() {
-                let needsUpdate = false;
-                
                 allGamesData.forEach(game => {
                     if (!gameCategories[game.id]) {
-                        // Assign a random category from available categories
                         const randomCategory = categories[Math.floor(Math.random() * categories.length)];
                         gameCategories[game.id] = randomCategory;
-                        needsUpdate = true;
                     }
                 });
-                
-                if (needsUpdate) {
-                    saveToFirestore(); // Save to Firestore instead of localStorage
-                }
             }
 
             window.switchTab = function(view) {
                 currentView = view;
-                currentPage = 1; // Reset to first page when switching tabs
+                currentPage = 1;
                 
+                // Update active tab styles
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelectorAll('.tab')[view === 'all' ? 0 : 1].classList.add('active');
+                
+                // Handle Category Filters logic: Hide them if looking at favorites
                 if(view === 'all') {
-                    tabAll.classList.add('active');
-                    tabFav.classList.remove('active');
-                    categoryFilters.classList.remove('hidden');
+                    categoryFilters.style.display = 'flex';
                 } else {
-                    tabAll.classList.remove('active');
-                    tabFav.classList.add('active');
-                    categoryFilters.classList.add('hidden');
+                    categoryFilters.style.display = 'none';
                 }
                 
                 renderCurrentView();
@@ -1616,7 +1894,9 @@
 
             function renderCurrentView() {
                 let gamesToRender = [];
+                const searchTerm = searchInput.value.toLowerCase();
 
+                // Determine source data
                 if (currentView === 'all') {
                     if (currentCategory === 'All') {
                         gamesToRender = allGamesData;
@@ -1624,137 +1904,124 @@
                         gamesToRender = allGamesData.filter(g => gameCategories[g.id] === currentCategory);
                     }
                 } else {
+                    // Favorites view
                     gamesToRender = favorites;
                 }
+
+                // Filter by Search
+                if (searchTerm) {
+                    gamesToRender = gamesToRender.filter(game => game.name.toLowerCase().includes(searchTerm));
+                }
                 
-                // Calculate pagination
                 const totalPages = Math.ceil(gamesToRender.length / gamesPerPage);
                 const startIndex = (currentPage - 1) * gamesPerPage;
                 const endIndex = startIndex + gamesPerPage;
                 const paginatedGames = gamesToRender.slice(startIndex, endIndex);
                 
-                // Update pagination controls
                 updatePaginationControls(totalPages);
                 
                 if (paginatedGames.length === 0) {
-                    const msg = currentView === 'all' 
-                        ? "No games found." 
-                        : "You haven't saved any games yet. Click the heart icon on a game to save it!";
+                    let msg = "No games found.";
+                    if(currentView === 'fav' && !searchTerm) msg = "No favorite games yet. Click the heart icon to add some!";
                     
-                    gamesContainer.innerHTML = `
-                        <div class="no-results">
-                            <i class="fas ${currentView === 'all' ? 'fa-search' : 'fa-heart-broken'}"></i>
-                            <p>${msg}</p>
-                        </div>
-                    `;
+                    gamesContainer.innerHTML = `<div class="no-results"><i class="fas ${currentView === 'all' ? 'fa-search' : 'fa-heart-broken'}"></i><p>${msg}</p></div>`;
                     return;
                 }
 
-                // Fill the grid with games
                 let gamesHTML = paginatedGames.map(game => createGameCard(game)).join('');
                 gamesContainer.innerHTML = gamesHTML;
             }
 
-            // Update pagination controls
             function updatePaginationControls(totalPages) {
-                // Update page info
-                pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-                
-                // Enable/disable buttons
+                pageInfo.textContent = `Page ${currentPage} of ${Math.max(1, totalPages)}`;
                 prevPageBtn.disabled = currentPage <= 1;
                 nextPageBtn.disabled = currentPage >= totalPages;
-                
-                // Show/hide pagination based on whether we have multiple pages
                 paginationControls.style.display = totalPages > 1 ? 'flex' : 'none';
             }
 
-            // Create Card HTML
             function createGameCard(game) {
                 const isFav = favorites.some(f => f.id === game.id);
                 const heartClass = isFav ? 'fas fa-heart' : 'far fa-heart';
-                const btnClass = isFav ? 'fav-btn active' : 'fav-btn';
+                const btnClass = isFav ? 'favorite-btn active' : 'favorite-btn';
                 const gameCategory = gameCategories[game.id] || 'Uncategorized';
-
-                // Escaping function for single quotes in names
                 const safeName = game.name.replace(/'/g, "\\'");
 
                 return `
                     <div class="game-card">
-                        <div class="game-badge">${gameCategory}</div>
-                        <div class="${btnClass}" onclick="toggleFavorite(${game.id}, this); event.stopPropagation();">
-                            <i class="${heartClass}"></i>
-                        </div>
-                        <div class="game-image" onclick="openGameModal('${game.link}', '${safeName}')">
-                            <img src="${game.icon}" alt="${game.name}">
-                        </div>
-                        <div class="game-info">
-                            <div>
-                                <div class="game-title">${game.name}</div>
-                                <div class="game-meta">
-                                    <div>${gameCategory}</div>
-                                </div>
+                        <div class="game-header">
+                            <img src="${game.icon}" alt="${game.name}" class="game-image" loading="lazy">
+                            <div class="game-badge">${gameCategory}</div>
+                            <div class="${btnClass}" onclick="toggleFavorite(event, ${game.id}, this)">
+                                <i class="${heartClass}"></i>
                             </div>
-                            <a href="javascript:void(0)" onclick="openGameModal('${game.link}', '${safeName}')" class="play-btn">
+                        </div>
+                        <div class="game-content">
+                            <div class="game-title">${game.name}</div>
+                            <div class="game-meta"><span>${gameCategory}</span></div>
+                            <button class="play-btn" onclick="openGameModal('${game.link}', '${safeName}')">
                                 <i class="fas fa-play"></i> Play Now
-                            </a>
+                            </button>
                         </div>
                     </div>
                 `;
             }
 
-            window.toggleFavorite = function(id, btnElement) {
+            window.toggleFavorite = function(event, id, btnElement) {
+                // Stop propagation to prevent modal opening
+                event.stopPropagation();
+
                 let game = allGamesData.find(g => g.id === id);
-                
-                if (!game) {
-                    game = favorites.find(f => f.id === id);
-                }
-                
+                if (!game) game = favorites.find(f => f.id === id);
                 if (!game) return;
 
                 const index = favorites.findIndex(f => f.id === id);
 
                 if (index === -1) {
                     favorites.push(game);
+                    btnElement.classList.add('active');
+                    btnElement.querySelector('i').className = 'fas fa-heart';
                     showToast("Added to Favorites", "added");
                 } else {
                     favorites.splice(index, 1);
+                    btnElement.classList.remove('active');
+                    btnElement.querySelector('i').className = 'far fa-heart';
                     showToast("Removed from Favorites", "removed");
                 }
 
                 localStorage.setItem('myGameFavorites', JSON.stringify(favorites));
                 updateFavCount();
-                renderCurrentView();
+                
+                // Update view immediately if we are looking at favorites
+                // This creates the "remove" effect instantly without switching tabs
+                if (currentView === 'fav') {
+                    renderCurrentView();
+                }
             };
 
             function updateFavCount() {
-                favCount.textContent = favorites.length;
+                favTabCount.textContent = favorites.length;
             }
 
-            // Update categories in filters and footer
             function updateCategories() {
-                // Update filter buttons
                 categoryFilters.innerHTML = '';
                 
-                // Add "All" filter
-                const allButton = document.createElement('button');
-                allButton.className = 'filter-btn active';
+                const allButton = document.createElement('div');
+                allButton.className = 'filter active';
                 allButton.setAttribute('data-category', 'All');
                 allButton.textContent = 'All Games';
                 allButton.addEventListener('click', filterHandler);
                 categoryFilters.appendChild(allButton);
                 
-                // Add category filters
                 categories.forEach(category => {
-                    const button = document.createElement('button');
-                    button.className = 'filter-btn';
+                    const button = document.createElement('div');
+                    button.className = 'filter';
                     button.setAttribute('data-category', category);
                     button.textContent = category;
                     button.addEventListener('click', filterHandler);
                     categoryFilters.appendChild(button);
                 });
                 
-                // Update footer categories
-                footerCategories.innerHTML = '';
+                sidebarCategories.innerHTML = '';
                 categories.forEach(category => {
                     const li = document.createElement('li');
                     const a = document.createElement('a');
@@ -1763,390 +2030,206 @@
                     a.textContent = category;
                     a.addEventListener('click', function(e) {
                         e.preventDefault();
-                        const filterBtn = document.querySelector(`.filter-btn[data-category="${category}"]`);
+                        const filterBtn = document.querySelector(`.filter[data-category="${category}"]`);
                         if (filterBtn) {
                             filterBtn.click();
-                            document.querySelector('.filters').scrollIntoView({ behavior: 'smooth' });
+                            closeSidebar();
+                            setTimeout(() => {
+                                document.querySelector('.filters').scrollIntoView({ behavior: 'smooth' });
+                            }, 300);
                         }
                     });
                     li.appendChild(a);
-                    footerCategories.appendChild(li);
+                    sidebarCategories.appendChild(li);
                 });
                 
-                // Update admin category list if admin is logged in
-                if (isAdmin) {
-                    updateAdminCategoryList();
-                }
+                if (isAdmin) updateAdminCategoryList();
             }
             
-            // Update admin category list
             function updateAdminCategoryList() {
                 categoryList.innerHTML = '';
-                
                 categories.forEach(category => {
                     const li = document.createElement('li');
                     li.className = 'category-item';
-                    li.innerHTML = `
-                        <span>${category}</span>
-                        <div class="category-actions">
-                            <button class="edit-btn" data-category="${category}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="delete-btn" data-category="${category}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    `;
+                    li.innerHTML = `<span>${category}</span><div class="category-actions"><button class="edit-btn" data-category="${category}"><i class="fas fa-edit"></i></button><button class="delete-btn" data-category="${category}"><i class="fas fa-trash"></i></button></div>`;
                     categoryList.appendChild(li);
                 });
-                
-                // Add event listeners to edit and delete buttons
                 document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const category = this.getAttribute('data-category');
-                        editCategory(category);
-                    });
+                    btn.addEventListener('click', function() { editCategory(this.getAttribute('data-category')); });
                 });
-                
                 document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const category = this.getAttribute('data-category');
-                        deleteCategory(category);
-                    });
+                    btn.addEventListener('click', function() { deleteCategory(this.getAttribute('data-category')); });
                 });
             }
             
-            // Update game category editor in admin panel
             function updateGameCategoryEditor() {
                 gameCategoryEditor.innerHTML = '';
-                
                 allGamesData.forEach(game => {
                     const gameItem = document.createElement('div');
                     gameItem.className = 'game-item';
                     gameItem.innerHTML = `
                         <span>${game.name}</span>
                         <select class="category-select" data-game="${game.id}">
-                            ${categories.map(cat => 
-                                `<option value="${cat}" ${gameCategories[game.id] === cat ? 'selected' : ''}>${cat}</option>`
-                            ).join('')}
+                            ${categories.map(cat => `<option value="${cat}" ${gameCategories[game.id] === cat ? 'selected' : ''}>${cat}</option>`).join('')}
                         </select>
                     `;
                     gameCategoryEditor.appendChild(gameItem);
                 });
-                
-                // Add event listeners to category selects
                 document.querySelectorAll('.category-select').forEach(select => {
                     select.addEventListener('change', function() {
                         const gameId = this.getAttribute('data-game');
-                        const newCategory = this.value;
-                        gameCategories[gameId] = newCategory;
+                        gameCategories[gameId] = this.value;
                     });
                 });
             }
             
-            // Add a new category
             function addCategory() {
                 const categoryName = newCategoryName.value.trim();
-                
                 if (categoryName && !categories.includes(categoryName)) {
                     categories.push(categoryName);
                     saveToFirestore().then(success => {
-                        if (success) {
-                            updateCategories();
-                            if (isAdmin) {
-                                updateGameCategoryEditor();
-                            }
-                            newCategoryName.value = '';
-                            showToast(`Category "${categoryName}" added successfully!`, 'added');
-                        } else {
-                            showToast('Error saving category. Using local storage.', 'removed');
-                        }
-                    });
-                } else if (categories.includes(categoryName)) {
-                    showToast('This category already exists!', 'removed');
-                } else {
-                    showToast('Please enter a valid category name!', 'removed');
-                }
-            }
-            
-            // Edit a category
-            function editCategory(category) {
-                const newName = prompt('Enter new name for category:', category);
-                
-                if (newName && newName.trim() && newName !== category) {
-                    if (categories.includes(newName)) {
-                        showToast('This category name already exists!', 'removed');
-                        return;
-                    }
-                    
-                    // Update category name in categories array
-                    const index = categories.indexOf(category);
-                    if (index !== -1) {
-                        categories[index] = newName;
-                    }
-                    
-                    // Update category in game assignments
-                    Object.keys(gameCategories).forEach(gameId => {
-                        if (gameCategories[gameId] === category) {
-                            gameCategories[gameId] = newName;
-                        }
-                    });
-                    
-                    // Save to Firestore
-                    saveToFirestore().then(success => {
-                        if (success) {
-                            updateCategories();
-                            if (isAdmin) {
-                                updateGameCategoryEditor();
-                            }
-                            renderCurrentView();
-                            showToast(`Category renamed to "${newName}" successfully!`, 'added');
-                        } else {
-                            showToast('Error saving changes. Using local storage.', 'removed');
-                        }
-                    });
-                }
-            }
-            
-            // Delete a category
-            function deleteCategory(category) {
-                if (confirm(`Are you sure you want to delete the category "${category}"? Games in this category will be moved to "${categories[0] || 'Uncategorized'}".`)) {
-                    // Remove category from categories array
-                    categories = categories.filter(cat => cat !== category);
-                    
-                    // Update game assignments - move games to first available category
-                    Object.keys(gameCategories).forEach(gameId => {
-                        if (gameCategories[gameId] === category) {
-                            gameCategories[gameId] = categories[0] || 'Uncategorized';
-                        }
-                    });
-                    
-                    // Save to Firestore
-                    saveToFirestore().then(success => {
-                        if (success) {
-                            updateCategories();
-                            if (isAdmin) {
-                                updateGameCategoryEditor();
-                            }
-                            renderCurrentView();
-                            showToast(`Category "${category}" deleted successfully!`, 'added');
-                        } else {
-                            showToast('Error deleting category. Using local storage.', 'removed');
-                        }
-                    });
-                }
-            }
-            
-            // Save all changes from admin panel
-            function saveChanges() {
-                saveToFirestore().then(success => {
-                    if (success) {
                         updateCategories();
+                        if (isAdmin) updateGameCategoryEditor();
+                        newCategoryName.value = '';
+                        showToast(`Category "${categoryName}" added!`, 'added');
+                    });
+                } else {
+                    showToast('Invalid or duplicate category!', 'removed');
+                }
+            }
+            
+            function editCategory(category) {
+                const newName = prompt('Enter new name:', category);
+                if (newName && newName.trim() && newName !== category) {
+                    const index = categories.indexOf(category);
+                    if (index !== -1) categories[index] = newName;
+                    Object.keys(gameCategories).forEach(id => {
+                        if (gameCategories[id] === category) gameCategories[id] = newName;
+                    });
+                    saveToFirestore().then(() => {
+                        updateCategories();
+                        if (isAdmin) updateGameCategoryEditor();
                         renderCurrentView();
-                        showToast('All changes saved successfully! All users will see updates.', 'added');
-                    } else {
-                        showToast('Error saving changes. Using local storage.', 'removed');
-                    }
+                        showToast('Category renamed!', 'added');
+                    });
+                }
+            }
+            
+            function deleteCategory(category) {
+                categories = categories.filter(cat => cat !== category);
+                Object.keys(gameCategories).forEach(id => {
+                    if (gameCategories[id] === category) gameCategories[id] = categories[0] || 'Uncategorized';
+                });
+                saveToFirestore().then(() => {
+                    updateCategories();
+                    if (isAdmin) updateGameCategoryEditor();
+                    renderCurrentView();
+                    showToast('Category deleted!', 'added');
                 });
             }
             
-            // Reset categories to default
-            function resetCategories() {
-                if (confirm('Are you sure you want to reset all categories to default? This will remove any custom categories and reassign games to default categories.')) {
-                    categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing'];
-                    gameCategories = {};
-                    
-                    // Reinitialize game categories
-                    initializeGameCategories();
-                    
-                    // Save to Firestore
-                    saveToFirestore().then(success => {
-                        if (success) {
-                            updateCategories();
-                            if (isAdmin) {
-                                updateGameCategoryEditor();
-                            }
-                            renderCurrentView();
-                            showToast('Categories reset to default successfully!', 'added');
-                        } else {
-                            showToast('Error resetting categories. Using local storage.', 'removed');
-                        }
-                    });
-                }
+            function saveChanges() {
+                saveToFirestore().then(() => {
+                    updateCategories();
+                    renderCurrentView();
+                    showToast('All changes saved!', 'added');
+                });
             }
             
-            // Admin login
+            function resetCategories() {
+                categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing'];
+                gameCategories = {};
+                initializeGameCategories();
+                saveToFirestore().then(() => {
+                    updateCategories();
+                    if (isAdmin) updateGameCategoryEditor();
+                    renderCurrentView();
+                    showToast('Categories reset!', 'added');
+                });
+            }
+            
             function adminLogin() {
-                // Password is "868659"
-                const password = adminPassword.value;
-                
-                if (password === '868659') {
+                if (adminPassword.value === '868659') {
                     isAdmin = true;
                     localStorage.setItem('gamesbydd_admin', 'true');
                     adminLoginModal.classList.remove('active');
                     adminPanel.classList.add('active');
                     adminBtn.style.display = 'flex';
                     updateGameCategoryEditor();
-                    showToast('Admin login successful!', 'added');
+                    updateNotificationManagement();
+                    showToast('Login successful!', 'added');
                 } else {
-                    showToast('Invalid admin password!', 'removed');
+                    showToast('Invalid password!', 'removed');
                 }
             }
             
-            // Admin logout
             function adminLogout() {
                 isAdmin = false;
                 localStorage.removeItem('gamesbydd_admin');
                 adminPanel.classList.remove('active');
                 adminBtn.style.display = 'none';
-                showToast('Admin logout successful!', 'added');
+                showToast('Logged out!', 'added');
             }
 
-            // Filter handler for category buttons
             function filterHandler() {
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
+                document.querySelectorAll('.filter').forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
-                
                 currentCategory = this.getAttribute('data-category');
-                currentPage = 1; // Reset to first page when filtering
-                
-                if(currentView === 'fav') {
-                    switchTab('all');
-                } else {
-                    renderCurrentView();
-                }
+                currentPage = 1;
+                if(currentView === 'fav') switchTab('all');
+                else renderCurrentView();
             }
 
-            window.filterByLink = function(category) {
-                document.getElementById('gameTabs').scrollIntoView({ behavior: 'smooth' });
-                switchTab('all');
-                const btn = Array.from(document.querySelectorAll('.filter-btn')).find(b => b.getAttribute('data-category') === category);
-                if(btn) btn.click();
-            };
+            function nextPage() { currentPage++; renderCurrentView(); window.scrollTo({ top: gamesContainer.offsetTop - 100, behavior: 'smooth' }); }
+            function prevPage() { currentPage--; renderCurrentView(); window.scrollTo({ top: gamesContainer.offsetTop - 100, behavior: 'smooth' }); }
 
-            // Pagination functions
-            function nextPage() {
-                currentPage++;
-                renderCurrentView();
-                window.scrollTo({ top: gamesContainer.offsetTop - 100, behavior: 'smooth' });
-            }
-
-            function prevPage() {
-                currentPage--;
-                renderCurrentView();
-                window.scrollTo({ top: gamesContainer.offsetTop - 100, behavior: 'smooth' });
-            }
-
-            // Set up all event listeners
             function setupEventListeners() {
-                // Back to top functionality
+                hamburgerMenu.addEventListener('click', openSidebar);
+                sidebarOverlay.addEventListener('click', closeSidebar);
+                
                 window.addEventListener('scroll', function() {
-                    if (window.pageYOffset > 300) {
-                        backToTop.classList.add('show');
-                    } else {
-                        backToTop.classList.remove('show');
-                    }
+                    if (window.pageYOffset > 300) backToTop.classList.add('show');
+                    else backToTop.classList.remove('show');
                 });
                 
-                backToTop.addEventListener('click', function() {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
+                backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
                 
-                // Search functionality
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    currentPage = 1; // Reset to first page when searching
-                    
-                    if(searchTerm.length > 0) {
-                        if(currentView === 'fav') switchTab('all');
-
-                        const filteredGames = allGamesData.filter(game => 
-                            game.name.toLowerCase().includes(searchTerm)
-                        );
-                        
-                        if (filteredGames.length === 0) {
-                            gamesContainer.innerHTML = `
-                                <div class="no-results">
-                                    <i class="fas fa-search"></i>
-                                    <p>No games found matching "${searchTerm}"</p>
-                                </div>`;
-                        } else {
-                            // Calculate pagination for search results
-                            const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
-                            const startIndex = (currentPage - 1) * gamesPerPage;
-                            const endIndex = startIndex + gamesPerPage;
-                            const paginatedGames = filteredGames.slice(startIndex, endIndex);
-                            
-                            // Update pagination controls
-                            updatePaginationControls(totalPages);
-                            
-                            // Fill the grid
-                            let gamesHTML = paginatedGames.map(game => createGameCard(game)).join('');
-                            gamesContainer.innerHTML = gamesHTML;
-                        }
-                    } else {
-                        renderCurrentView();
-                    }
+                searchInput.addEventListener('input', () => {
+                    currentPage = 1;
+                    renderCurrentView();
                 });
 
-                exploreBtn.addEventListener('click', function() {
-                    document.getElementById('gameTabs').scrollIntoView({ behavior: 'smooth' });
-                });
+                notificationBell.addEventListener('click', (e) => { e.stopPropagation(); notificationModal.classList.add('active'); document.body.style.overflow = 'hidden'; });
+                backNotificationBtn.addEventListener('click', () => { notificationModal.classList.remove('active'); document.body.style.overflow = 'auto'; });
+                markAllReadModal.addEventListener('click', markAllNotificationsAsRead);
+                notificationModal.addEventListener('click', (e) => { if(e.target === notificationModal) { notificationModal.classList.remove('active'); document.body.style.overflow = 'auto'; } });
+                sendNotificationBtn.addEventListener('click', () => sendNotification(notificationTitle.value, notificationMessage.value, 'info'));
 
-                // Admin functionality
-                adminBtn.addEventListener('click', function() {
-                    if (isAdmin) {
-                        adminPanel.classList.add('active');
-                        updateGameCategoryEditor();
-                    } else {
-                        adminLoginModal.classList.add('active');
-                    }
+                adminBtn.addEventListener('click', () => {
+                    if (isAdmin) { adminPanel.classList.add('active'); updateGameCategoryEditor(); updateNotificationManagement(); }
+                    else adminLoginModal.classList.add('active');
                 });
                 
                 adminLoginBtn.addEventListener('click', adminLogin);
-                
-                closeLoginModal.addEventListener('click', function() {
-                    adminLoginModal.classList.remove('active');
-                });
-                
-                closeAdminPanel.addEventListener('click', function() {
-                    adminPanel.classList.remove('active');
-                });
-                
+                closeLoginModal.addEventListener('click', () => adminLoginModal.classList.remove('active'));
+                closeAdminPanel.addEventListener('click', () => adminPanel.classList.remove('active'));
                 addCategoryBtn.addEventListener('click', addCategory);
-                
                 saveChangesBtn.addEventListener('click', saveChanges);
-                
                 resetCategoriesBtn.addEventListener('click', resetCategories);
-                
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    adminLogout();
-                });
-                
-                // Allow Enter key to add category
-                newCategoryName.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        addCategory();
-                    }
-                });
-                
-                // Pagination event listeners
+                logoutBtn.addEventListener('click', (e) => { e.preventDefault(); adminLogout(); });
+                newCategoryName.addEventListener('keypress', (e) => { if (e.key === 'Enter') addCategory(); });
                 nextPageBtn.addEventListener('click', nextPage);
                 prevPageBtn.addEventListener('click', prevPage);
             }
             
-            // Initialize the application
-            await init();
             setupEventListeners();
+            await init();
             
-            // Make functions available globally
             window.toggleFavorite = toggleFavorite;
             window.nextPage = nextPage;
             window.prevPage = prevPage;
+            window.switchTab = switchTab;
+            window.closeSidebar = closeSidebar;
         });
     </script>
 </body>
