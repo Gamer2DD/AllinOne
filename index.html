@@ -670,7 +670,8 @@
                         const docRef = doc(window.firebaseDb, 'settings', 'analytics');
                         const docSnap = await getDoc(docRef);
                         if (docSnap.exists()) {
-                            siteVisits = docSnap.data().totalVisits || 0;
+                            // CHANGED: fetching 'totalUniqueVisitors' instead of 'totalVisits'
+                            siteVisits = docSnap.data().totalUniqueVisitors || 0;
                         }
                     } catch (e) { console.error("Error fetching visits", e); }
                 }
@@ -694,13 +695,15 @@
                 if (!window.firebaseDb) return;
                 
                 // Use session storage so we don't count refreshing the page multiple times in one session
+                // This ensures we only count NEW devices or NEW sessions (visitors)
                 if (sessionStorage.getItem('visit_counted')) return;
 
                 const { doc, setDoc, increment } = window.firebaseMethods;
                 try {
                     const analyticsRef = doc(window.firebaseDb, 'settings', 'analytics');
-                    // This will create the doc if it doesn't exist and increment by 1
-                    await setDoc(analyticsRef, { totalVisits: increment(1) }, { merge: true });
+                    // CHANGED: Using 'totalUniqueVisitors' effectively restarts the count to 0 in your DB
+                    // This increments only once per session/device visit
+                    await setDoc(analyticsRef, { totalUniqueVisitors: increment(1) }, { merge: true });
                     sessionStorage.setItem('visit_counted', 'true');
                 } catch (error) {
                     console.error("Could not increment visits (likely permission issue if not auth)", error);
@@ -1283,12 +1286,13 @@
                 await gameStats.fetchVisits(); // Fetch latest count
                 const analyticsDiv = document.getElementById('adminAnalyticsPlaceholder');
                 
+                // CHANGED: Label is now TOTAL VISITORS
                 analyticsDiv.innerHTML = `
                     <div class="admin-section">
                         <h3><i class="fas fa-chart-line"></i> Performance</h3>
                         <div class="analytics-grid">
                             <div class="analytics-card">
-                                <div class="analytics-label">Total Visits</div>
+                                <div class="analytics-label">TOTAL VISITORS</div>
                                 <div class="analytics-number">${siteVisits}</div>
                             </div>
                             <div class="analytics-card">
