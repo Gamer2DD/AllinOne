@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GamesbyDD | Play Free HTML Games - No Downloads</title>
-    <meta name="description" content="Play free HTML games instantly in your browser. No downloads required. Collection of action, puzzle, strategy and adventure games.">
+    <title>GamesbyDD | Play Free Online Games - No Downloads</title>
+    <meta name="description" content="Play free online games instantly in your browser. No downloads required. Collection of action, puzzle, strategy and adventure games.">
+    <meta name="theme-color" content="#6C5CE7">
+    <meta name="mobile-web-app-capable" content="yes">
     
-    <!-- BRAND IDENTITY -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -15,7 +16,7 @@
     <!-- Firebase SDK v9 (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, getDocs, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, getDocs, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDzrJM46NhXTsfECgrWJ_-4XBdHvMex1bI",
@@ -35,7 +36,7 @@
         window.firebaseDb = db;
         window.firebaseMethods = { 
             getDoc, setDoc, onSnapshot, doc, collection, addDoc, getDocs, 
-            updateDoc, deleteDoc, query, orderBy, where, serverTimestamp 
+            updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, increment 
         };
         
         window.dispatchEvent(new Event('firebase-ready'));
@@ -59,1058 +60,247 @@
             --card-bg: #FFFFFF;
             --header-bg: linear-gradient(135deg, #6C5CE7 0%, #5649C0 100%);
             --footer-bg: #2D3436;
-            --admin-bg: #1a1a2e;
+            --admin-bg: #1e1e2f;
             --notification-bg: #FFEAA7;
             --notification-unread: #FD79A8;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--light);
-            color: var(--dark);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--light); color: var(--dark); min-height: 100vh; line-height: 1.6; }
 
-        /* Hamburger Menu Styles */
-        .hamburger-menu {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            color: white;
-            margin-right: 15px;
-        }
+        /* --- HAMBURGER & SIDEBAR --- */
+        .hamburger-menu { display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; width: 30px; height: 22px; margin-right: 15px; z-index: 1100; }
+        .hamburger-menu span { display: block; height: 3px; width: 100%; background-color: white; border-radius: 4px; transition: all 0.4s ease-in-out; transform-origin: left center; }
+        .hamburger-menu.active span:nth-child(1) { transform: rotate(45deg); top: 0px; left: 2px; }
+        .hamburger-menu.active span:nth-child(2) { width: 0%; opacity: 0; }
+        .hamburger-menu.active span:nth-child(3) { transform: rotate(-45deg); top: 20px; left: 2px; }
 
-        .hamburger-icon { font-size: 1.5rem; }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 300px;
-            height: 100vh;
-            background: white;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            transition: left 0.3s ease;
-            overflow-y: auto;
-            padding-top: 70px;
-        }
-
+        .sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: white; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); z-index: 1000; transition: left 0.4s cubic-bezier(0.77, 0.2, 0.05, 1.0); overflow-y: auto; padding-top: 80px; }
         .sidebar.active { left: 0; }
-
-        .sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: none;
-        }
-
-        .sidebar-overlay.active { display: block; }
-
-        .sidebar-section {
-            padding: 20px;
-            border-bottom: 1px solid var(--gray-light);
-        }
-
-        .sidebar-section h3 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+        .sidebar-section { padding: 20px; border-bottom: 1px solid var(--gray-light); }
+        .sidebar-section h3 { font-family: 'Poppins', sans-serif; font-size: 1.2rem; margin-bottom: 15px; color: var(--primary); }
         .sidebar-links { list-style: none; }
-        .sidebar-links li { margin-bottom: 10px; }
+        .sidebar-links li { margin-bottom: 10px; opacity: 0; transform: translateX(-20px); transition: all 0.4s ease; }
+        .sidebar.active .sidebar-links li { opacity: 1; transform: translateX(0); }
+        .sidebar.active .sidebar-links li:nth-child(1) { transition-delay: 0.1s; }
+        .sidebar.active .sidebar-links li:nth-child(2) { transition-delay: 0.2s; }
+        .sidebar.active .sidebar-links li:nth-child(3) { transition-delay: 0.3s; }
+        .sidebar.active .sidebar-links li:nth-child(4) { transition-delay: 0.4s; }
+        .sidebar-links a { text-decoration: none; color: var(--dark); display: flex; align-items: center; gap: 10px; padding: 8px 0; transition: color 0.3s; }
+        .sidebar-links a:hover { color: var(--primary); padding-left: 5px; }
 
-        .sidebar-links a {
-            text-decoration: none;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-            transition: color 0.3s;
-        }
+        /* --- ADS & MODALS --- */
+        .ad-container { width: 100%; display: flex; justify-content: center; align-items: center; margin: 20px 0; padding: 0 10px; }
+        .ad-box { background-color: #eaebef; border: 1px dashed #b2bec3; width: 100%; max-width: 970px; height: 90px; display: flex; justify-content: center; align-items: center; color: #636e72; font-size: 0.9rem; border-radius: 8px; position: relative; overflow: hidden; }
+        .ad-box::before { content: 'Advertisement'; position: absolute; top: 0; left: 0; background: #dfe6e9; color: #636e72; font-size: 0.6rem; padding: 2px 6px; text-transform: uppercase; }
+        .ad-leaderboard { max-width: 970px; height: 90px; }
+        .ad-content { max-width: 728px; height: 90px; }
+        .ad-sidebar { max-width: 280px; height: 250px; margin: 0 auto; }
+        .ad-modal { max-width: 728px; height: 90px; background: #2d3436; border-color: #444; margin-top: 15px; color: #a4b0be; }
 
-        .sidebar-links a:hover { color: var(--primary); }
-        .sidebar-links a i { width: 20px; text-align: center; }
-
-        /* Game Modal Styles */
-        .game-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 2000;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .game-modal.active { display: flex; }
-
-        .modal-header {
-            width: 95%;
-            max-width: 1800px; 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            color: white;
-        }
-
-        .modal-title {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .close-game-btn {
-            background: var(--error);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .game-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.3s ease; }
+        .game-modal.active { display: flex; opacity: 1; }
+        .modal-header { width: 95%; max-width: 1800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: white; }
+        .modal-title { font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 600; }
+        .close-game-btn { background: var(--error); color: white; border: none; padding: 8px 20px; border-radius: 50px; cursor: pointer; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
         .close-game-btn:hover { background: #c43075; transform: scale(1.05); }
-
-        .iframe-container {
-            width: 95%;
-            max-width: 1800px;
-            height: 90vh;
-            background: #000;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(108, 92, 231, 0.3);
-            position: relative;
-        }
-
+        .iframe-container { width: 95%; max-width: 1800px; height: 80vh; background: #000; border-radius: 15px; overflow: hidden; box-shadow: 0 0 30px rgba(108, 92, 231, 0.3); position: relative; }
         iframe { width: 100%; height: 100%; border: none; display: block; }
 
-        /* Notification Toast Styles */
-        .toast {
-            position: fixed;
-            top: 90px;
-            right: 20px;
-            background: white;
-            color: var(--dark);
-            padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            z-index: 1000;
-            transform: translateX(120%);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-weight: 600;
-            border-left: 5px solid var(--primary);
-            max-width: 300px;
-        }
-
+        .toast { position: fixed; top: 90px; right: 20px; background: white; color: var(--dark); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 1000; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-weight: 600; border-left: 5px solid var(--primary); max-width: 300px; }
         .toast.show { transform: translateX(0); }
         .toast.added { border-left-color: var(--success); }
         .toast.removed { border-left-color: var(--error); }
-        .toast i { font-size: 1.2rem; }
 
-        /* CLEAN HEADER DESIGN */
-        header {
-            background: var(--header-bg);
-            padding: 18px 5%;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
+        /* --- HEADER & HERO --- */
+        header { background: var(--header-bg); padding: 18px 5%; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); position: sticky; top: 0; z-index: 100; }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
         .brand { display: flex; align-items: center; gap: 12px; }
-
-        .logo {
-            width: 45px;
-            height: 45px;
-            background: var(--accent);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.3rem;
-            box-shadow: 0 4px 10px rgba(0, 206, 201, 0.3);
-        }
-
-        .brand-text h1 {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: white;
-            line-height: 1.2;
-        }
-
-        .brand-text .tagline {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 2px;
-        }
-
+        .logo { width: 45px; height: 45px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.3rem; box-shadow: 0 4px 10px rgba(0, 206, 201, 0.3); }
+        .brand-text h1 { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.5rem; color: white; line-height: 1.2; }
+        .brand-text .tagline { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); margin-top: 2px; }
         .header-actions { display: flex; align-items: center; gap: 15px; }
-
-        .notification-bell {
-            position: relative;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .notification-bell:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--notification-unread);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        /* Notification Modal Styles */
-        .notification-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .notification-modal.active { display: flex; }
-
-        .notification-container {
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .notification-header {
-            padding: 20px;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .notification-header h2 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .back-notification-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .back-notification-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
-        }
-
-        .notification-list-modal {
-            flex: 1;
-            overflow-y: auto;
-            max-height: calc(80vh - 80px);
-        }
-
-        .notification-item-modal {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--gray-light);
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .notification-item-modal:last-child { border-bottom: none; }
-        .notification-item-modal:hover { background: var(--light); }
-        .notification-item-modal.unread { background: var(--notification-bg); }
-
-        .notification-icon-modal {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .notification-content-modal { flex: 1; }
-        .notification-title-modal { font-weight: 600; margin-bottom: 5px; font-size: 0.95rem; }
-        .notification-message-modal { font-size: 0.85rem; color: var(--gray); margin-bottom: 5px; line-height: 1.4; }
-        .notification-time-modal { font-size: 0.75rem; color: var(--gray); display: flex; gap: 10px; }
-        .notification-date { font-weight: 500; }
-        .notification-dot-modal { width: 8px; height: 8px; border-radius: 50%; background: var(--notification-unread); flex-shrink: 0; margin-top: 5px; }
-
-        .no-notifications-modal {
-            padding: 40px 20px;
-            text-align: center;
-            color: var(--gray);
-        }
-
-        .no-notifications-modal i { font-size: 3rem; margin-bottom: 15px; color: var(--gray-light); }
-
-        .mark-all-read-modal {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-
-        .mark-all-read-modal:hover { background: var(--primary-dark); }
-
-        /* Admin Button */
-        .admin-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .admin-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-        }
-
-        /* Admin Login Modal */
-        .admin-login-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .admin-login-modal.active { opacity: 1; visibility: visible; }
-
-        .login-form {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .login-form h3 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            text-align: center;
-            color: var(--dark);
-        }
-
-        .login-form input {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid var(--gray-light);
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        .login-form input:focus { outline: none; border-color: var(--primary); }
-
-        .login-form button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .login-form button:hover { background: var(--primary-dark); }
-
-        /* Admin Panel */
-        .admin-panel {
-            position: fixed;
-            top: 0;
-            right: -400px;
-            width: 400px;
-            height: 100vh;
-            background: var(--admin-bg);
-            color: white;
-            z-index: 1000;
-            transition: right 0.4s ease;
-            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
-            overflow-y: auto;
-        }
-
-        .admin-panel.active { right: 0; }
-
-        .admin-header {
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .admin-header h2 { font-family: 'Poppins', sans-serif; font-size: 1.5rem; }
-
-        .close-admin {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .close-admin:hover { color: var(--accent); }
-
-        .admin-content { padding: 20px; }
-        .admin-section { margin-bottom: 30px; }
-
-        .admin-section h3 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: var(--accent);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 8px;
-        }
-
-        .admin-input {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.2);
-            color: white;
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        .admin-input:focus { outline: none; border-color: var(--accent); }
-
-        textarea.admin-input { min-height: 100px; resize: vertical; }
-
-        .admin-btn-panel {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-
-        .admin-btn-panel:hover { background: var(--primary-dark); }
-
-        .category-list { list-style: none; margin-top: 15px; }
-
-        .category-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .category-actions { display: flex; gap: 10px; }
-
-        .category-actions button {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: color 0.3s ease;
-        }
-
-        .category-actions .edit-btn:hover { color: var(--accent); }
-        .category-actions .delete-btn:hover { color: var(--error); }
-
-        .game-category-editor { margin-top: 20px; }
-
-        .game-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .game-category {
-            background: var(--primary);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-
-        .category-select {
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            padding: 5px 10px;
-        }
-
-        /* Notification Management Section */
-        .notification-management { margin-top: 20px; }
-
-        .notification-item-admin {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .notification-content-admin { flex: 1; margin-right: 15px; }
-        .notification-title-admin { font-weight: 600; margin-bottom: 5px; font-size: 1rem; }
-        .notification-message-admin { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 8px; line-height: 1.4; }
-        .notification-meta-admin { font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); display: flex; gap: 10px; }
-        .notification-actions-admin { display: flex; gap: 10px; }
-
-        .delete-notification-btn {
-            background: var(--error);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.3s;
-        }
-
-        .delete-notification-btn:hover { background: #c43075; }
-
-        /* HERO SECTION */
-        .hero {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 4rem 5%;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero h2 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-
-        .hero-features {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .feature {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-        }
-
-        .feature i { color: var(--accent); }
-
-        /* MAIN CONTENT LAYOUT */
-        main {
-            padding: 2rem 5%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* TAB SYSTEM */
-        .section-header {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            border-bottom: 2px solid var(--gray-light);
-        }
-
-        .tab {
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            color: var(--gray);
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--accent);
-        }
-
-        .tab .badge {
-            background: var(--gray-light);
-            color: var(--dark);
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            margin-left: 5px;
-        }
-
+        .notification-bell, .admin-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: all 0.3s ease; position: relative; }
+        .notification-bell:hover, .admin-btn:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-2px); }
+        .notification-badge { position: absolute; top: -5px; right: -5px; background: var(--notification-unread); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; }
+
+        .hero { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 4rem 5%; text-align: center; position: relative; }
+        .hero-content { max-width: 800px; margin: 0 auto; position: relative; z-index: 2; }
+        .hero h2 { font-family: 'Poppins', sans-serif; font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; }
+        .hero p { font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9; }
+        .hero-features { display: flex; justify-content: center; gap: 2rem; margin-top: 2rem; flex-wrap: wrap; }
+        .feature { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+
+        /* --- MAIN CONTENT & GAME GRID --- */
+        main { padding: 2rem 5%; max-width: 1400px; margin: 0 auto; }
+        .section-header { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+        .section-title { font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--dark); }
+        
+        .tabs { display: flex; gap: 1rem; border-bottom: 2px solid var(--gray-light); overflow-x: auto; padding-bottom: 5px; }
+        .tab { padding: 0.75rem 1.5rem; font-weight: 600; color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--accent); }
+        .tab .badge { background: var(--gray-light); color: var(--dark); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: 5px; transition: all 0.3s; }
         .tab.active .badge { background: var(--secondary); color: white; }
+        
+        .filters { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .filter { padding: 0.5rem 1rem; border-radius: 20px; background: white; border: 1px solid var(--gray-light); color: var(--gray); font-weight: 500; cursor: pointer; transition: all 0.3s ease; }
+        .filter.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* FILTERS */
-        .filters {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .filter {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            background: white;
-            border: 1px solid var(--gray-light);
-            color: var(--gray);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .filter.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        /* GAMES GRID - 5 PER ROW, 2 ROWS */
-        .games-container {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(2, auto);
-            gap: 25px;
-            margin-bottom: 2rem;
-            min-height: 600px;
-        }
-
-        .game-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-            border: 1px solid var(--gray-light);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        }
-
-        .game-header {
-            position: relative;
-            height: 160px;
-            overflow: hidden;
-        }
-
-        .game-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
+        .games-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 25px; margin-bottom: 2rem; min-height: 600px; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .game-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; border: 1px solid var(--gray-light); display: flex; flex-direction: column; position: relative; animation: fadeInUp 0.5s ease backwards; }
+        .game-card:nth-child(1) { animation-delay: 0.05s; } .game-card:nth-child(2) { animation-delay: 0.1s; } .game-card:nth-child(3) { animation-delay: 0.15s; }
+        .game-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); }
+        .game-header { position: relative; height: 160px; overflow: hidden; }
+        .game-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease, opacity 0.5s ease; opacity: 0; }
+        .game-image.loaded { opacity: 1; }
         .game-card:hover .game-image { transform: scale(1.05); }
-
-        .game-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--accent);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .favorite-btn {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 32px;
-            height: 32px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--gray);
-            transition: all 0.2s ease;
-        }
-
+        .game-badge { position: absolute; top: 10px; right: 10px; background: var(--accent); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .favorite-btn { position: absolute; top: 10px; left: 10px; width: 32px; height: 32px; background: rgba(255, 255, 255, 0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gray); transition: all 0.2s ease; z-index: 5; }
         .favorite-btn.active { color: var(--error); }
-        .favorite-btn:hover { transform: scale(1.1); }
-
-        .game-content {
-            padding: 1.25rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .game-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-            line-height: 1.4;
-        }
-
-        .game-meta {
-            display: flex;
-            justify-content: space-between;
-            color: var(--gray);
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
-        }
-
-        .play-btn {
-            padding: 0.75rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: auto;
-        }
-
+        .game-content { padding: 1.25rem; flex-grow: 1; display: flex; flex-direction: column; }
+        .game-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; line-height: 1.4; }
+        .game-meta { display: flex; justify-content: space-between; color: var(--gray); font-size: 0.85rem; margin-bottom: 1rem; }
+        .play-btn { padding: 0.75rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: auto; }
         .play-btn:hover { background: var(--primary-dark); }
 
-        /* PAGINATION CONTROLS */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-top: 40px;
-            padding: 20px 0;
-        }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 40px; padding: 20px 0; }
+        .page-btn { background: var(--primary); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); }
+        .page-btn:disabled { background: var(--gray-light); color: var(--gray); cursor: not-allowed; box-shadow: none; }
+        .page-info { font-size: 1.1rem; font-weight: 600; color: var(--dark); background: var(--gray-light); padding: 8px 20px; border-radius: 50px; }
+        .loading, .no-results { text-align: center; padding: 80px 20px; font-size: 1.1rem; color: var(--gray); grid-column: 1 / -1; }
+        .loading i, .no-results i { font-size: 2.5rem; margin-bottom: 15px; color: var(--primary); }
 
-        .page-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
-        }
-
-        .page-btn:hover:not(:disabled) {
-            background: var(--primary-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
-        }
-
-        .page-btn:disabled {
-            background: var(--gray-light);
-            color: var(--gray);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .page-info {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--dark);
-            background: var(--gray-light);
-            padding: 8px 20px;
-            border-radius: 50px;
-        }
-
-        /* Loading and No Results */
-        .loading, .no-results {
-            text-align: center;
-            padding: 80px 20px;
-            font-size: 1.1rem;
-            color: var(--gray);
-            grid-column: 1 / -1;
-        }
-
-        .loading i, .no-results i {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-
-        /* FOOTER */
-        footer {
-            background: var(--footer-bg);
-            color: white;
-            padding: 3rem 5% 1.5rem;
-            margin-top: 3rem;
-        }
-
-        .footer-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .footer-column h4 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: var(--accent);
-        }
-
-        .footer-column ul { list-style: none; }
-        .footer-column ul li { margin-bottom: 0.5rem; }
-
-        .footer-column ul li a {
-            color: var(--gray-light);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .footer-column ul li a:hover { color: var(--accent); }
-
+        footer { background: var(--footer-bg); color: white; padding: 3rem 5% 1.5rem; margin-top: 3rem; }
+        .footer-content { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
         .social-links { display: flex; gap: 1rem; margin-top: 1rem; }
-
-        .social-link {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: all 0.3s ease;
-        }
-
+        .social-link { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; }
         .social-link:hover { background: var(--accent); transform: translateY(-2px); }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--gray-light);
-            font-size: 0.9rem;
-        }
-
-        /* Back to Top Button */
-        .back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
-            z-index: 99;
-            opacity: 0;
-            visibility: hidden;
-        }
-
+        .footer-bottom { text-align: center; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); color: var(--gray-light); font-size: 0.9rem; }
+        .back-to-top { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); z-index: 99; opacity: 0; visibility: hidden; }
         .back-to-top.show { opacity: 1; visibility: visible; }
-        .back-to-top:hover { background: var(--primary-dark); transform: translateY(-3px); }
+        .main-search-container { position: relative; width: 100%; max-width: 500px; margin-bottom: 1.5rem; }
+        .main-search-container input { width: 100%; padding: 14px 50px 14px 20px; border-radius: 50px; border: 1px solid var(--gray-light); font-size: 1rem; transition: all 0.3s ease; }
+        .main-search-container i { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--gray); }
 
-        /* Search bar in main content */
-        .main-search-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 1.5rem;
+        /* --- NOTIFICATION MODAL --- */
+        .notification-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .notification-modal.active { display: flex; }
+        .notification-container { width: 90%; max-width: 500px; max-height: 80vh; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; }
+        .notification-header { padding: 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .back-notification-btn { background: rgba(255, 255, 255, 0.2); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .notification-list-modal { flex: 1; overflow-y: auto; max-height: calc(80vh - 80px); }
+        .notification-item-modal { padding: 15px 20px; border-bottom: 1px solid var(--gray-light); cursor: pointer; display: flex; align-items: flex-start; gap: 12px; }
+        .notification-item-modal.unread { background: var(--notification-bg); }
+        .mark-all-read-modal { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+
+        /* --- FIXED ADMIN PANEL STYLES --- */
+        .admin-login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .admin-login-modal.active { opacity: 1; visibility: visible; }
+        .login-form { background: white; border-radius: 16px; padding: 30px; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .login-form h3 { margin-bottom: 20px; color: var(--primary); font-family: 'Poppins', sans-serif; text-align: center; }
+        .login-form input { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--gray-light); margin-bottom: 15px; }
+        .login-form button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; margin-top: 10px; font-weight: 600; }
+        
+        .admin-panel { 
+            position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; 
+            background: var(--admin-bg); color: #ecf0f1; z-index: 3000; 
+            transition: right 0.4s cubic-bezier(0.77, 0.2, 0.05, 1.0); 
+            overflow-y: auto; box-shadow: -5px 0 30px rgba(0,0,0,0.5); 
         }
-
-        .main-search-container input {
-            width: 100%;
-            padding: 14px 50px 14px 20px;
-            border-radius: 50px;
-            border: 1px solid var(--gray-light);
-            font-size: 1rem;
-            background: white;
-            color: var(--dark);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        .admin-panel.active { right: 0; }
+        .admin-panel::-webkit-scrollbar { width: 8px; }
+        .admin-panel::-webkit-scrollbar-track { background: #151525; }
+        .admin-panel::-webkit-scrollbar-thumb { background: #3d3d5c; border-radius: 4px; }
+        
+        .admin-header { padding: 25px 20px; background: rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .admin-header h2 { font-family: 'Poppins', sans-serif; font-size: 1.4rem; color: #fff; }
+        .close-admin { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 1.5rem; cursor: pointer; transition: color 0.3s; }
+        .close-admin:hover { color: #fff; }
+        
+        .admin-content { padding: 25px 20px; }
+        .admin-section { margin-bottom: 35px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .admin-section h3 { margin-bottom: 15px; color: var(--accent); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 8px; }
+        
+        .admin-input { 
+            width: 100%; padding: 12px 15px; border-radius: 8px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            background: rgba(20, 20, 35, 0.6); color: #fff; 
+            margin-bottom: 15px; outline: none; transition: border-color 0.3s; 
         }
-
-        .main-search-container input::placeholder { color: var(--gray); }
-
-        .main-search-container input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.15);
+        .admin-input:focus { border-color: var(--accent); }
+        .admin-input::placeholder { color: rgba(255,255,255,0.4); }
+        
+        .admin-btn-panel { 
+            background: var(--primary); color: white; border: none; 
+            padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; 
+            display: flex; justify-content: center; align-items: center; gap: 8px; 
+            margin-bottom: 15px; font-weight: 600; transition: background 0.3s; 
         }
+        .admin-btn-panel:hover { background: var(--primary-dark); }
+        
+        /* Specific Admin Buttons */
+        .btn-green { background: var(--success); }
+        .btn-green:hover { background: #00a884; }
+        .btn-orange { background: var(--warning); color: #2d3436; }
+        .btn-orange:hover { background: #fdcb6ecc; }
+        .btn-red { background: var(--error); }
+        .btn-red:hover { background: #d63031; }
 
-        .main-search-container i {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-            font-size: 1.1rem;
+        /* Admin Lists */
+        .category-list { 
+            list-style: none; margin-top: 10px; max-height: 250px; overflow-y: auto; 
+            padding-right: 5px; 
         }
+        .category-list::-webkit-scrollbar { width: 4px; }
+        .category-list::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
+        
+        .notification-management { list-style: none; margin-top: 10px; }
+        .category-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); 
+            font-size: 0.95rem; 
+        }
+        .category-actions { display: flex; gap: 8px; }
+        .edit-btn, .delete-btn { background: none; border: none; cursor: pointer; padding: 5px; opacity: 0.7; transition: opacity 0.2s; }
+        .edit-btn { color: var(--accent); }
+        .delete-btn { color: var(--error); }
+        .edit-btn:hover, .delete-btn:hover { opacity: 1; transform: scale(1.1); }
+        
+        /* Game Editor List */
+        .game-category-editor { max-height: 400px; overflow-y: auto; padding-right: 5px; margin-top: 10px; }
+        .game-category-editor::-webkit-scrollbar { width: 4px; }
+        .game-category-editor::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
+        .game-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); 
+        }
+        .game-item span { font-size: 0.9rem; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .category-select { 
+            background: #151525; color: #ddd; border: 1px solid #444; 
+            padding: 5px 10px; border-radius: 4px; font-size: 0.85rem; outline: none; 
+        }
+        
+        /* Admin Notifications */
+        .notification-item-admin { 
+            padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 10px; 
+            display: flex; justify-content: space-between; align-items: flex-start; 
+        }
+        .notification-content-admin { flex: 1; }
+        .notification-title-admin { font-weight: 600; color: #fff; font-size: 0.95rem; }
+        .notification-message-admin { font-size: 0.85rem; color: #ccc; margin-top: 2px; }
+        .notification-meta-admin { font-size: 0.75rem; color: #888; margin-top: 5px; }
+        .notification-actions-admin { margin-left: 10px; }
+        .delete-notification-btn { color: var(--error); background: none; border: 1px solid var(--error); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        .delete-notification-btn:hover { background: var(--error); color: white; }
 
-        /* RESPONSIVE DESIGN */
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 10px; }
+        .analytics-card { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .analytics-number { font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-top: 5px; }
+        .analytics-label { font-size: 0.75rem; opacity: 0.7; text-transform: uppercase; }
+
         @media (max-width: 1200px) { .games-container { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 992px) { .games-container { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 768px) {
@@ -1118,35 +308,32 @@
             .hero h2 { font-size: 2rem; }
             .hero p { font-size: 1rem; }
             .section-header { flex-direction: column; align-items: flex-start; }
-            .tabs { width: 100%; overflow-x: auto; }
+            .tabs { width: 100%; }
             .games-container { grid-template-columns: repeat(2, 1fr); }
-            .iframe-container { height: 80vh; width: 95%; }
+            .iframe-container { height: 70vh; width: 95%; }
             .admin-panel { width: 100%; right: -100%; }
             .sidebar { width: 280px; left: -280px; }
         }
-        @media (max-width: 480px) {
-            .games-container { grid-template-columns: 1fr; }
-            .logo h1 { font-size: 1.5rem; }
-            .hero h2 { font-size: 1.8rem; }
-            .hero p { font-size: 1rem; }
-            .game-header { height: 120px; }
-            .game-content { padding: 15px; }
-            .game-title { font-size: 1rem; }
-            .section-title { font-size: 1.6rem; }
-            .sidebar { width: 100%; left: -100%; }
-        }
+        @media (max-width: 480px) { .games-container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <!-- Sidebar for hamburger menu -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
+        <div class="ad-container" style="margin: 10px 0; padding: 0;">
+            <div class="ad-box ad-sidebar">
+                <span>Sponsored Ad (250x250)</span>
+            </div>
+        </div>
+
         <div class="sidebar-section">
             <h3>Quick Links</h3>
             <ul class="sidebar-links">
                 <li><a href="#" onclick="switchTab('all'); closeSidebar(); return false;"><i class="fas fa-home"></i> Home</a></li>
                 <li><a href="#" onclick="switchTab('all'); closeSidebar(); return false;"><i class="fas fa-gamepad"></i> All Games</a></li>
                 <li><a href="#" onclick="switchTab('fav'); closeSidebar(); return false;"><i class="fas fa-heart"></i> Favorites</a></li>
+                <li><a href="#" onclick="switchTab('recent'); closeSidebar(); return false;"><i class="fas fa-history"></i> Recent Play</a></li>
             </ul>
         </div>
         <div class="sidebar-section">
@@ -1166,8 +353,13 @@
             </button>
         </div>
         <div class="iframe-container">
-            <!-- This iframe loads the game -->
             <iframe id="gameFrame" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
+        
+        <div class="ad-container">
+            <div class="ad-box ad-modal">
+                <span>Sponsored Ad (728x90)</span>
+            </div>
         </div>
     </div>
 
@@ -1181,7 +373,7 @@
                 </button>
             </div>
             <div class="notification-list-modal" id="notificationListModal">
-                <!-- Notifications will be added here dynamically -->
+                <!-- Notifications added here -->
             </div>
             <div style="padding: 15px; text-align: center; border-top: 1px solid var(--gray-light);">
                 <button class="mark-all-read-modal" id="markAllReadModal">Mark All as Read</button>
@@ -1201,94 +393,94 @@
             <h3>Admin Login</h3>
             <input type="password" id="adminPassword" placeholder="Enter admin password">
             <button id="adminLoginBtn">Login</button>
-            <button id="closeLoginModal">Cancel</button>
+            <button id="closeLoginModal" style="background: var(--gray);">Cancel</button>
         </div>
     </div>
 
-    <!-- Admin Panel -->
+    <!-- UPDATED ADMIN PANEL HTML -->
     <div class="admin-panel" id="adminPanel">
         <div class="admin-header">
-            <h2>Admin Panel</h2>
+            <h2><i class="fas fa-cogs"></i> Dashboard</h2>
             <button class="close-admin" id="closeAdminPanel">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="admin-content">
+            <div id="adminAnalyticsPlaceholder"></div>
+
             <div class="admin-section">
-                <h3>Send Notification</h3>
-                <input type="text" class="admin-input" id="notificationTitle" placeholder="Notification Title">
-                <textarea class="admin-input" id="notificationMessage" placeholder="Notification Message"></textarea>
+                <h3><i class="fas fa-bullhorn"></i> Broadcast</h3>
+                <input type="text" class="admin-input" id="notificationTitle" placeholder="Title (e.g., New Games!)">
+                <textarea class="admin-input" id="notificationMessage" placeholder="Message content..." rows="3"></textarea>
                 <button class="admin-btn-panel" id="sendNotificationBtn">
-                    <i class="fas fa-bell"></i> Send Notification to All Users
+                    <i class="fas fa-paper-plane"></i> Send Notification
                 </button>
             </div>
-            
-            <!-- Notification Management -->
+
+            <!-- History Section Moved Here -->
             <div class="admin-section">
-                <h3>Notification Management</h3>
-                <div class="notification-management" id="notificationManagement">
-                    <!-- Notifications for deletion will be added here dynamically -->
+                <h3><i class="fas fa-history"></i> History</h3>
+                <div class="notification-management" id="notificationManagement"></div>
+            </div>
+            
+            <div class="admin-section">
+                <h3><i class="fas fa-list-ul"></i> Manage Categories</h3>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" class="admin-input" id="newCategoryName" placeholder="New Category Name" style="margin-bottom: 0;">
+                    <button class="admin-btn-panel" id="addCategoryBtn" style="width: auto; margin-bottom: 0;">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
+                <!-- Categories list now has scroll -->
+                <ul class="category-list" id="categoryList"></ul>
             </div>
             
             <div class="admin-section">
-                <h3>Category Management</h3>
-                <input type="text" class="admin-input" id="newCategoryName" placeholder="New category name">
-                <button class="admin-btn-panel" id="addCategoryBtn">
-                    <i class="fas fa-plus"></i> Add Category
-                </button>
-                
-                <h4>Existing Categories</h4>
-                <ul class="category-list" id="categoryList">
-                    <!-- Categories will be added here dynamically -->
-                </ul>
-            </div>
-            
-            <div class="admin-section">
-                <h3>Game Categories</h3>
+                <h3><i class="fas fa-gamepad"></i> Game Assignment</h3>
+                <!-- Search bar added below line -->
+                <input type="text" class="admin-input" id="gameAssignmentSearch" placeholder="Search game to categorize..." style="margin-bottom: 5px;">
                 <div class="game-category-editor" id="gameCategoryEditor">
-                    <!-- Game category assignments will be added here dynamically -->
+                    <!-- Populated by JS -->
                 </div>
             </div>
             
             <div class="admin-section">
-                <h3>Admin Actions</h3>
-                <button class="admin-btn-panel" id="saveChangesBtn">
+                <h3><i class="fas fa-sliders-h"></i> System Actions</h3>
+                <button class="admin-btn-panel btn-green" id="saveChangesBtn">
                     <i class="fas fa-save"></i> Save All Changes
                 </button>
-                <button class="admin-btn-panel" id="resetCategoriesBtn">
-                    <i class="fas fa-undo"></i> Reset to Default
+                <button class="admin-btn-panel btn-orange" id="resetCategoriesBtn">
+                    <i class="fas fa-undo"></i> Reset Defaults
                 </button>
-                <button class="admin-btn-panel" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <button class="admin-btn-panel btn-red" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout Admin
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- CLEAN HEADER NAVIGATION -->
+    <!-- HEADER NAVIGATION -->
     <header>
         <div class="nav-container">
             <div class="brand">
                 <div class="hamburger-menu" id="hamburgerMenu">
-                    <i class="fas fa-bars hamburger-icon"></i>
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </div>
                 <div class="logo">
                     <i class="fas fa-dice-d20"></i>
                 </div>
                 <div class="brand-text">
                     <h1>GamesbyDD</h1>
-                    <div class="tagline">Play Free HTML Games - No Downloads</div>
+                    <div class="tagline">Play Free Online Games - No Downloads</div>
                 </div>
             </div>
             <div class="header-actions">
-                <!-- Notification Bell -->
                 <div class="notification-bell" id="notificationBell">
                     <i class="fas fa-bell"></i>
                     <div class="notification-badge" id="notificationBadge" style="display: none;">0</div>
                 </div>
-                
-                <!-- Admin Button -->
                 <div class="admin-btn" id="adminBtn">
                     <i class="fas fa-user-shield"></i>
                 </div>
@@ -1296,36 +488,27 @@
         </div>
     </header>
 
-    <!-- HERO SECTION -->
+    <div class="ad-container">
+        <div class="ad-box ad-leaderboard">
+            <span>Advertisement (Leaderboard 970x90)</span>
+        </div>
+    </div>
+
     <section class="hero">
         <div class="hero-content">
-            <h2>Play Free HTML Games Instantly</h2>
-            <p>No downloads, no installations. Just click and play in your browser. Curated collection of the best HTML5 games.</p>
+            <h2>Play Free Online Games Instantly</h2>
+            <p>No downloads, no installations. Just click and play in your browser. Curated collection of the best browser games.</p>
             
             <div class="hero-features">
-                <div class="feature">
-                    <i class="fas fa-check-circle"></i>
-                    <span>100% Free</span>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-check-circle"></i>
-                    <span>No Downloads</span>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Mobile Friendly</span>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Live Notifications</span>
-                </div>
+                <div class="feature"><i class="fas fa-check-circle"></i><span>100% Free</span></div>
+                <div class="feature"><i class="fas fa-check-circle"></i><span>No Downloads</span></div>
+                <div class="feature"><i class="fas fa-check-circle"></i><span>Mobile Friendly</span></div>
+                <div class="feature"><i class="fas fa-check-circle"></i><span>Live Notifications</span></div>
             </div>
         </div>
     </section>
 
-    <!-- MAIN CONTENT -->
     <main>
-        <!-- Default Game View -->
         <div id="gameView" class="active-view">
             <div class="section-header">
                 <h2 class="section-title">Game Collection</h2>
@@ -1338,15 +521,20 @@
                     <div class="tab" onclick="switchTab('fav')">
                         Favorites <span class="badge" id="favTabCount">0</span>
                     </div>
+                    <div class="tab" onclick="switchTab('recent')">
+                        Recent Play <span class="badge" id="recentTabCount">0</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- CATEGORY FILTERS -->
-            <div class="filters" id="categoryFilters">
-                <!-- Filters will be populated dynamically -->
+            <div class="filters" id="categoryFilters"></div>
+
+            <div class="ad-container">
+                <div class="ad-box ad-content">
+                    <span>Advertisement (Banner 728x90)</span>
+                </div>
             </div>
 
-            <!-- GAMES GRID -->
             <div class="games-container" id="gamesContainer">
                 <div class="loading">
                     <i class="fas fa-spinner fa-spin"></i>
@@ -1354,32 +542,28 @@
                 </div>
             </div>
 
-            <!-- PAGINATION CONTROLS -->
             <div class="pagination" id="paginationControls">
-                <button class="page-btn" id="prevPageBtn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+                <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
                 <div class="page-info" id="pageInfo">Page 1 of 1</div>
-                <button class="page-btn" id="nextPageBtn" disabled>
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
             </div>
         </div>
     </main>
 
-    <!-- FOOTER -->
+    <div class="ad-container">
+        <div class="ad-box ad-leaderboard">
+            <span>Advertisement (Leaderboard 970x90)</span>
+        </div>
+    </div>
+
     <footer>
         <div class="footer-content">
             <div class="footer-column">
                 <h4>GamesbyDD</h4>
-                <p>Your destination for free HTML games. Play instantly in your browser with no downloads required.</p>
+                <p>Your destination for free online games. Play instantly in your browser with no downloads required.</p>
                 <div class="social-links">
-                    <a href="https://www.instagram.com/_ffgamer2dd?igsh=MW1ndG5hN3dqOXVvZw==" class="social-link" target="_blank">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="https://youtube.com/@ffgamer2ddyt?si=Fj7Zi0B0MSY8-5cz" class="social-link" target="_blank">
-                        <i class="fab fa-youtube"></i>
-                    </a>
+                    <a href="https://www.instagram.com/_ffgamer2dd?igsh=MW1ndG5hN3dqOXVvZw==" class="social-link" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="https://youtube.com/@ffgamer2ddyt?si=Fj7Zi0B0MSY8-5cz" class="social-link" target="_blank"><i class="fab fa-youtube"></i></a>
                 </div>
             </div>
         </div>
@@ -1398,11 +582,9 @@
             const gamesContainer = document.getElementById('gamesContainer');
             const searchInput = document.getElementById('searchInput');
             const favTabCount = document.getElementById('favTabCount');
+            const recentTabCount = document.getElementById('recentTabCount');
             const backToTop = document.getElementById('backToTop');
             const categoryFilters = document.getElementById('categoryFilters');
-            
-            // View elements
-            const gameView = document.getElementById('gameView');
             
             // Pagination elements
             const paginationControls = document.getElementById('paginationControls');
@@ -1444,6 +626,7 @@
             const notificationMessage = document.getElementById('notificationMessage');
             const sendNotificationBtn = document.getElementById('sendNotificationBtn');
             const notificationManagement = document.getElementById('notificationManagement');
+            const gameAssignmentSearch = document.getElementById('gameAssignmentSearch');
             
             // Hamburger Menu Elements
             const hamburgerMenu = document.getElementById('hamburgerMenu');
@@ -1452,27 +635,51 @@
             const sidebarCategories = document.getElementById('sidebarCategories');
             
             let toastTimeout;
+            let searchTimeout;
             
             // State
             let currentView = 'all'; 
             let currentCategory = 'All';
             let allGamesData = [];
             let favorites = JSON.parse(localStorage.getItem('myGameFavorites')) || [];
-            let categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing']; // Default
-            let gameCategories = {}; // Will be loaded from Firebase
+            let recentGames = JSON.parse(sessionStorage.getItem('myRecentGames')) || [];
+            
+            let categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing']; 
+            let gameCategories = {}; 
             let isAdmin = localStorage.getItem('gamesbydd_admin') === 'true';
             let unsubscribeFromFirestore = null;
             let unsubscribeFromNotifications = null;
-            
-            // Notification State
             let notifications = [];
             let unreadCount = 0;
-            
-            // Pagination state - 5 games per row × 2 rows = 10 games per page
             let currentPage = 1;
             const gamesPerPage = 10;
+            
+            // Analytics State
+            let siteVisits = 0;
 
-            // Wait for Firebase Module to be Ready or Timeout gracefully
+            // =============================================
+            // ENHANCED FEATURES OBJECTS
+            // =============================================
+            
+            const gameStats = {
+                // We will fetch site visits from Firebase
+                fetchVisits: async function() {
+                    if (!window.firebaseDb) return;
+                    const { doc, getDoc } = window.firebaseMethods;
+                    try {
+                        const docRef = doc(window.firebaseDb, 'settings', 'analytics');
+                        const docSnap = await getDoc(docRef);
+                        if (docSnap.exists()) {
+                            siteVisits = docSnap.data().totalVisits || 0;
+                        }
+                    } catch (e) { console.error("Error fetching visits", e); }
+                }
+            };
+
+            // =============================================
+            // UTILITY FUNCTIONS
+            // =============================================
+            
             async function waitForFirebase() {
                 let checks = 0;
                 while (!window.firebaseDb && checks < 20) {
@@ -1482,20 +689,31 @@
                 return window.firebaseDb;
             }
 
-            // =============================================
-            // FIREBASE FUNCTIONS - MODULAR V9
-            // =============================================
-            
-            // Load categories and game categories from Firestore
+            // SITE VISIT COUNTER LOGIC
+            async function incrementSiteVisits() {
+                if (!window.firebaseDb) return;
+                
+                // Use session storage so we don't count refreshing the page multiple times in one session
+                if (sessionStorage.getItem('visit_counted')) return;
+
+                const { doc, setDoc, increment } = window.firebaseMethods;
+                try {
+                    const analyticsRef = doc(window.firebaseDb, 'settings', 'analytics');
+                    // This will create the doc if it doesn't exist and increment by 1
+                    await setDoc(analyticsRef, { totalVisits: increment(1) }, { merge: true });
+                    sessionStorage.setItem('visit_counted', 'true');
+                } catch (error) {
+                    console.error("Could not increment visits (likely permission issue if not auth)", error);
+                }
+            }
+
             async function loadFromFirestore() {
                 if (!window.firebaseDb) return false;
                 const { getDoc, doc } = window.firebaseMethods;
                 const db = window.firebaseDb;
-
                 try {
                     const docRef = doc(db, 'settings', 'categories');
                     const docSnap = await getDoc(docRef);
-                    
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         categories = data.categories || categories;
@@ -1506,17 +724,15 @@
                         return true;
                     }
                 } catch (error) {
-                    const storedCategories = localStorage.getItem('gamesbydd_categories');
-                    const storedGameCategories = localStorage.getItem('gamesbydd_game_categories');
-                    
-                    if (storedCategories) categories = JSON.parse(storedCategories);
-                    if (storedGameCategories) gameCategories = JSON.parse(storedGameCategories);
-                    
+                    const cache = JSON.parse(localStorage.getItem('cachedGames'));
+                    if (cache) {
+                        categories = cache.categories || categories;
+                        gameCategories = cache.gameCategories || {};
+                    }
                     return false;
                 }
             }
 
-            // Save categories and game categories to Firestore
             async function saveToFirestore() {
                 if (!window.firebaseDb) {
                      localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
@@ -1525,7 +741,6 @@
                 }
                 const { setDoc, doc } = window.firebaseMethods;
                 const db = window.firebaseDb;
-
                 try {
                     await setDoc(doc(db, 'settings', 'categories'), {
                         categories: categories,
@@ -1533,30 +748,21 @@
                         lastUpdated: new Date()
                     });
                     return true;
-                } catch (error) {
-                    return false;
-                }
+                } catch (error) { return false; }
             }
 
-            // Set up real-time listener for Firestore changes
             function setupFirestoreListener() {
                 if (!window.firebaseDb) return;
                 const { onSnapshot, doc } = window.firebaseMethods;
                 const db = window.firebaseDb;
-
                 if (unsubscribeFromFirestore) unsubscribeFromFirestore();
-
                 const docRef = doc(db, 'settings', 'categories');
-                
                 unsubscribeFromFirestore = onSnapshot(docRef, (doc) => {
                     if (doc.exists()) {
                         const data = doc.data();
                         const newCategories = data.categories || categories;
                         const newGameCategories = data.gameCategories || {};
-                        
-                        if (JSON.stringify(newCategories) !== JSON.stringify(categories) || 
-                            JSON.stringify(newGameCategories) !== JSON.stringify(gameCategories)) {
-                            
+                        if (JSON.stringify(newCategories) !== JSON.stringify(categories) || JSON.stringify(newGameCategories) !== JSON.stringify(gameCategories)) {
                             categories = newCategories;
                             gameCategories = newGameCategories;
                             updateCategories();
@@ -1566,28 +772,22 @@
                 }, (error) => {});
             }
 
-            // Set up real-time listener for notifications
             function setupNotificationsListener() {
                 if (!window.firebaseDb) return;
                 const { onSnapshot, collection, query, orderBy } = window.firebaseMethods;
                 const db = window.firebaseDb;
-
                 if (unsubscribeFromNotifications) unsubscribeFromNotifications();
-
                 const notificationsRef = collection(db, 'notifications');
                 const q = query(notificationsRef, orderBy('timestamp', 'desc'));
-                
                 unsubscribeFromNotifications = onSnapshot(q, (querySnapshot) => {
                     notifications = [];
                     unreadCount = 0;
-                    
                     querySnapshot.forEach((doc) => {
                         const notification = { id: doc.id, ...doc.data() };
                         notifications.push(notification);
                         const readNotifications = JSON.parse(localStorage.getItem('gamesbydd_read_notifications') || '[]');
                         if (!readNotifications.includes(doc.id)) unreadCount++;
                     });
-                    
                     updateNotificationBadge();
                     renderNotifications();
                     if (isAdmin) updateNotificationManagement();
@@ -1595,46 +795,27 @@
             }
 
             async function sendNotification(title, message, type) {
-                if (!window.firebaseDb) {
-                    showToast('Database not connected', 'removed');
-                    return;
-                }
-                if (!title || !message) {
-                    showToast('Please fill in both title and message', 'removed');
-                    return;
-                }
-                
+                if (!window.firebaseDb) { showToast('Database not connected', 'removed'); return; }
+                if (!title || !message) { showToast('Please fill in both title and message', 'removed'); return; }
                 const { addDoc, collection, serverTimestamp } = window.firebaseMethods;
                 const db = window.firebaseDb;
-
                 try {
                     await addDoc(collection(db, 'notifications'), {
-                        title: title,
-                        message: message,
-                        type: type,
-                        timestamp: serverTimestamp(),
-                        sentBy: 'Admin'
+                        title: title, message: message, type: type, timestamp: serverTimestamp(), sentBy: 'Admin'
                     });
-                    
                     showToast('Notification sent to all users!', 'added');
-                    notificationTitle.value = '';
-                    notificationMessage.value = '';
-                } catch (error) {
-                    showToast('Failed to send notification', 'removed');
-                }
+                    notificationTitle.value = ''; notificationMessage.value = '';
+                } catch (error) { showToast('Failed to send notification', 'removed'); }
             }
 
             async function deleteNotification(notificationId) {
                 if (!window.firebaseDb) return;
                 const { deleteDoc, doc } = window.firebaseMethods;
                 const db = window.firebaseDb;
-
                 try {
                     await deleteDoc(doc(db, 'notifications', notificationId));
                     showToast('Notification deleted successfully!', 'added');
-                } catch (error) {
-                    showToast('Failed to delete notification', 'removed');
-                }
+                } catch (error) { showToast('Failed to delete notification', 'removed'); }
             }
 
             function markNotificationAsRead(notificationId) {
@@ -1644,7 +825,6 @@
                     localStorage.setItem('gamesbydd_read_notifications', JSON.stringify(readNotifications));
                     unreadCount = Math.max(0, unreadCount - 1);
                     updateNotificationBadge();
-                    
                     const notificationItem = document.querySelector(`.notification-item-modal[data-id="${notificationId}"]`);
                     if (notificationItem) {
                         notificationItem.classList.remove('unread');
@@ -1657,9 +837,7 @@
             function markAllNotificationsAsRead() {
                 const readNotifications = JSON.parse(localStorage.getItem('gamesbydd_read_notifications') || '[]');
                 notifications.forEach(notification => {
-                    if (!readNotifications.includes(notification.id)) {
-                        readNotifications.push(notification.id);
-                    }
+                    if (!readNotifications.includes(notification.id)) readNotifications.push(notification.id);
                 });
                 localStorage.setItem('gamesbydd_read_notifications', JSON.stringify(readNotifications));
                 unreadCount = 0;
@@ -1672,9 +850,7 @@
                 if (unreadCount > 0) {
                     notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
                     notificationBadge.style.display = 'flex';
-                } else {
-                    notificationBadge.style.display = 'none';
-                }
+                } else { notificationBadge.style.display = 'none'; }
             }
 
             function renderNotifications() {
@@ -1703,16 +879,13 @@
                 });
                 notificationListModal.innerHTML = notificationsHTML;
                 document.querySelectorAll('.notification-item-modal').forEach(item => {
-                    item.addEventListener('click', function() {
-                        const notificationId = this.getAttribute('data-id');
-                        markNotificationAsRead(notificationId);
-                    });
+                    item.addEventListener('click', function() { markNotificationAsRead(this.getAttribute('data-id')); });
                 });
             }
 
             function updateNotificationManagement() {
                 if (notifications.length === 0) {
-                    notificationManagement.innerHTML = `<p style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">No notifications to manage</p>`;
+                    notificationManagement.innerHTML = `<p style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">No notifications history</p>`;
                     return;
                 }
                 let managementHTML = '';
@@ -1724,10 +897,10 @@
                             <div class="notification-content-admin">
                                 <div class="notification-title-admin">${notification.title || 'Notification'}</div>
                                 <div class="notification-message-admin">${notification.message || ''}</div>
-                                <div class="notification-meta-admin"><span>${dateString}</span><span>${timeAgo}</span></div>
+                                <div class="notification-meta-admin"><span>${dateString}</span> • <span>${timeAgo}</span></div>
                             </div>
                             <div class="notification-actions-admin">
-                                <button class="delete-notification-btn" data-id="${notification.id}"><i class="fas fa-trash"></i> Delete</button>
+                                <button class="delete-notification-btn" data-id="${notification.id}"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
                     `;
@@ -1736,9 +909,7 @@
                 document.querySelectorAll('.delete-notification-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const notificationId = this.getAttribute('data-id');
-                        if (confirm('Are you sure you want to delete this notification?')) {
-                            deleteNotification(notificationId);
-                        }
+                        if (confirm('Are you sure you want to delete this notification?')) deleteNotification(notificationId);
                     });
                 });
             }
@@ -1770,64 +941,47 @@
                 return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
             }
 
-            // Initialize
+            // =============================================
+            // GAME LOGIC & LOADING
+            // =============================================
+
             async function init() {
                 await waitForFirebase();
-                const loadGamesPromise = loadGames();
-                const loadFirestorePromise = loadFromFirestore();
-                await loadGamesPromise;
+                incrementSiteVisits(); // Count visit on load
+                await loadGamesWithCache();
+                
                 setupFirestoreListener();
                 setupNotificationsListener();
-                updateFavCount();
+                updateCounts(); 
                 updateCategories();
                 if (isAdmin) adminBtn.style.display = 'flex';
             }
 
-            function openSidebar() {
-                sidebar.classList.add('active');
-                sidebarOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
+            function cacheGameData() {
+                localStorage.setItem('cachedGames', JSON.stringify({
+                    data: allGamesData,
+                    timestamp: Date.now(),
+                    categories: categories,
+                    gameCategories: gameCategories
+                }));
             }
 
-            function closeSidebar() {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-
-            window.openGameModal = function(url, title) {
-                gameFrame.src = url;
-                modalGameTitle.textContent = title;
-                gameModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            };
-
-            window.closeGameModal = function() {
-                gameModal.classList.remove('active');
-                gameFrame.src = '';
-                document.body.style.overflow = 'auto';
-            };
-
-            gameModal.addEventListener('click', function(e) {
-                if(e.target === gameModal) closeGameModal();
-            });
-
-            function showToast(message, type) {
-                const toast = document.getElementById('toast');
-                const toastMessage = document.getElementById('toastMessage');
-                toastMessage.textContent = message;
-                toast.className = 'toast show';
-                toast.classList.add(type); 
-                const icon = toast.querySelector('i');
-                if(type === 'added') {
-                    icon.className = 'fas fa-check-circle';
-                    icon.style.color = 'var(--success)';
-                } else {
-                    icon.className = 'fas fa-trash-alt';
-                    icon.style.color = 'var(--error)';
+            async function loadGamesWithCache() {
+                const cached = localStorage.getItem('cachedGames');
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Date.now() - parsed.timestamp < 3600000) {
+                        allGamesData = parsed.data;
+                        categories = parsed.categories;
+                        gameCategories = parsed.gameCategories;
+                        renderCurrentView();
+                    }
                 }
-                if (toastTimeout) clearTimeout(toastTimeout);
-                toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+                
+                if (allGamesData.length === 0) showSkeletonLoading();
+
+                await loadGames();
+                cacheGameData();
             }
 
             async function loadGames() {
@@ -1840,8 +994,14 @@
                     initializeGameCategories();
                     renderCurrentView();
                 } catch (error) {
-                    gamesContainer.innerHTML = `<div class="no-results"><i class="fas fa-exclamation-triangle"></i><p>Failed to load games.</p></div>`;
+                    if (allGamesData.length === 0) {
+                        gamesContainer.innerHTML = `<div class="no-results"><i class="fas fa-exclamation-triangle"></i><p>Failed to load games. Check connection.</p></div>`;
+                    }
                 }
+            }
+            
+            function showSkeletonLoading() {
+                gamesContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>';
             }
 
             function parseCSV(csvText) {
@@ -1872,23 +1032,81 @@
                 });
             }
 
+            // =============================================
+            // UI INTERACTION
+            // =============================================
+
+            function openSidebar() {
+                sidebar.classList.add('active');
+                hamburgerMenu.classList.add('active'); 
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('active');
+                hamburgerMenu.classList.remove('active'); 
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+
+            window.openGameModal = function(url, title, id) {
+                gameFrame.src = url;
+                modalGameTitle.textContent = title;
+                gameModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                addToRecentGames(id);
+            };
+
+            function addToRecentGames(gameId) {
+                const game = allGamesData.find(g => g.id === gameId);
+                if (!game) return;
+                recentGames = recentGames.filter(g => g.id !== gameId);
+                recentGames.unshift(game);
+                if (recentGames.length > 20) recentGames.pop();
+                sessionStorage.setItem('myRecentGames', JSON.stringify(recentGames));
+                updateCounts();
+            }
+
+            window.closeGameModal = function() {
+                gameModal.classList.remove('active');
+                gameFrame.src = '';
+                document.body.style.overflow = 'auto';
+            };
+
+            gameModal.addEventListener('click', function(e) {
+                if(e.target === gameModal) closeGameModal();
+            });
+
+            function showToast(message, type) {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+                toastMessage.textContent = message;
+                toast.className = 'toast show';
+                toast.classList.add(type); 
+                const icon = toast.querySelector('i');
+                if(type === 'added') {
+                    icon.className = 'fas fa-check-circle';
+                    icon.style.color = 'var(--success)';
+                } else {
+                    icon.className = 'fas fa-trash-alt';
+                    icon.style.color = 'var(--error)';
+                }
+                if (toastTimeout) clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+            }
+
             window.switchTab = function(view) {
                 currentView = view;
                 currentPage = 1;
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
                 
-                // Update active tab styles
-                document.querySelectorAll('.tab').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                document.querySelectorAll('.tab')[view === 'all' ? 0 : 1].classList.add('active');
-                
-                // Handle Category Filters logic: Hide them if looking at favorites
-                if(view === 'all') {
-                    categoryFilters.style.display = 'flex';
-                } else {
-                    categoryFilters.style.display = 'none';
-                }
-                
+                const tabs = document.querySelectorAll('.tab');
+                if(view === 'all') tabs[0].classList.add('active');
+                else if(view === 'fav') tabs[1].classList.add('active');
+                else if(view === 'recent') tabs[2].classList.add('active');
+
+                categoryFilters.style.display = view === 'all' ? 'flex' : 'none';
                 renderCurrentView();
             };
 
@@ -1896,19 +1114,15 @@
                 let gamesToRender = [];
                 const searchTerm = searchInput.value.toLowerCase();
 
-                // Determine source data
                 if (currentView === 'all') {
-                    if (currentCategory === 'All') {
-                        gamesToRender = allGamesData;
-                    } else {
-                        gamesToRender = allGamesData.filter(g => gameCategories[g.id] === currentCategory);
-                    }
-                } else {
-                    // Favorites view
+                    if (currentCategory === 'All') gamesToRender = allGamesData;
+                    else gamesToRender = allGamesData.filter(g => gameCategories[g.id] === currentCategory);
+                } else if (currentView === 'fav') {
                     gamesToRender = favorites;
+                } else if (currentView === 'recent') {
+                    gamesToRender = recentGames;
                 }
 
-                // Filter by Search
                 if (searchTerm) {
                     gamesToRender = gamesToRender.filter(game => game.name.toLowerCase().includes(searchTerm));
                 }
@@ -1922,14 +1136,14 @@
                 
                 if (paginatedGames.length === 0) {
                     let msg = "No games found.";
-                    if(currentView === 'fav' && !searchTerm) msg = "No favorite games yet. Click the heart icon to add some!";
+                    if(currentView === 'fav' && !searchTerm) msg = "No favorite games yet.";
+                    if(currentView === 'recent' && !searchTerm) msg = "No games played recently in this session.";
                     
-                    gamesContainer.innerHTML = `<div class="no-results"><i class="fas ${currentView === 'all' ? 'fa-search' : 'fa-heart-broken'}"></i><p>${msg}</p></div>`;
+                    gamesContainer.innerHTML = `<div class="no-results"><i class="fas ${currentView === 'all' ? 'fa-search' : 'fa-ghost'}"></i><p>${msg}</p></div>`;
                     return;
                 }
 
-                let gamesHTML = paginatedGames.map(game => createGameCard(game)).join('');
-                gamesContainer.innerHTML = gamesHTML;
+                gamesContainer.innerHTML = paginatedGames.map(game => createGameCard(game)).join('');
             }
 
             function updatePaginationControls(totalPages) {
@@ -1945,11 +1159,11 @@
                 const btnClass = isFav ? 'favorite-btn active' : 'favorite-btn';
                 const gameCategory = gameCategories[game.id] || 'Uncategorized';
                 const safeName = game.name.replace(/'/g, "\\'");
-
+                
                 return `
                     <div class="game-card">
                         <div class="game-header">
-                            <img src="${game.icon}" alt="${game.name}" class="game-image" loading="lazy">
+                            <img src="${game.icon}" alt="${game.name}" class="game-image" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 400 300\\'><rect width=\\'400\\' height=\\'300\\' fill=\\'%23eee\\'/><text x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%23aaa\\'>No Image</text></svg>'">
                             <div class="game-badge">${gameCategory}</div>
                             <div class="${btnClass}" onclick="toggleFavorite(event, ${game.id}, this)">
                                 <i class="${heartClass}"></i>
@@ -1958,7 +1172,7 @@
                         <div class="game-content">
                             <div class="game-title">${game.name}</div>
                             <div class="game-meta"><span>${gameCategory}</span></div>
-                            <button class="play-btn" onclick="openGameModal('${game.link}', '${safeName}')">
+                            <button class="play-btn" onclick="openGameModal('${game.link}', '${safeName}', ${game.id})">
                                 <i class="fas fa-play"></i> Play Now
                             </button>
                         </div>
@@ -1967,15 +1181,12 @@
             }
 
             window.toggleFavorite = function(event, id, btnElement) {
-                // Stop propagation to prevent modal opening
                 event.stopPropagation();
-
                 let game = allGamesData.find(g => g.id === id);
-                if (!game) game = favorites.find(f => f.id === id);
+                if (!game) game = favorites.find(f => f.id === id) || recentGames.find(r => r.id === id);
                 if (!game) return;
 
                 const index = favorites.findIndex(f => f.id === id);
-
                 if (index === -1) {
                     favorites.push(game);
                     btnElement.classList.add('active');
@@ -1987,24 +1198,18 @@
                     btnElement.querySelector('i').className = 'far fa-heart';
                     showToast("Removed from Favorites", "removed");
                 }
-
                 localStorage.setItem('myGameFavorites', JSON.stringify(favorites));
-                updateFavCount();
-                
-                // Update view immediately if we are looking at favorites
-                // This creates the "remove" effect instantly without switching tabs
-                if (currentView === 'fav') {
-                    renderCurrentView();
-                }
+                updateCounts();
+                if (currentView === 'fav') renderCurrentView();
             };
 
-            function updateFavCount() {
+            function updateCounts() {
                 favTabCount.textContent = favorites.length;
+                recentTabCount.textContent = recentGames.length;
             }
 
             function updateCategories() {
                 categoryFilters.innerHTML = '';
-                
                 const allButton = document.createElement('div');
                 allButton.className = 'filter active';
                 allButton.setAttribute('data-category', 'All');
@@ -2027,25 +1232,23 @@
                     const a = document.createElement('a');
                     a.href = '#';
                     a.setAttribute('data-category', category);
-                    a.textContent = category;
+                    a.innerHTML = `<i class="fas fa-angle-right"></i> ${category}`;
                     a.addEventListener('click', function(e) {
                         e.preventDefault();
                         const filterBtn = document.querySelector(`.filter[data-category="${category}"]`);
                         if (filterBtn) {
                             filterBtn.click();
                             closeSidebar();
-                            setTimeout(() => {
-                                document.querySelector('.filters').scrollIntoView({ behavior: 'smooth' });
-                            }, 300);
+                            setTimeout(() => { document.querySelector('.filters').scrollIntoView({ behavior: 'smooth' }); }, 300);
                         }
                     });
                     li.appendChild(a);
                     sidebarCategories.appendChild(li);
                 });
-                
                 if (isAdmin) updateAdminCategoryList();
             }
             
+            // Admin Functions
             function updateAdminCategoryList() {
                 categoryList.innerHTML = '';
                 categories.forEach(category => {
@@ -2054,12 +1257,8 @@
                     li.innerHTML = `<span>${category}</span><div class="category-actions"><button class="edit-btn" data-category="${category}"><i class="fas fa-edit"></i></button><button class="delete-btn" data-category="${category}"><i class="fas fa-trash"></i></button></div>`;
                     categoryList.appendChild(li);
                 });
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', function() { editCategory(this.getAttribute('data-category')); });
-                });
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', function() { deleteCategory(this.getAttribute('data-category')); });
-                });
+                document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', function() { editCategory(this.getAttribute('data-category')); }));
+                document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', function() { deleteCategory(this.getAttribute('data-category')); }));
             }
             
             function updateGameCategoryEditor() {
@@ -2076,99 +1275,71 @@
                     gameCategoryEditor.appendChild(gameItem);
                 });
                 document.querySelectorAll('.category-select').forEach(select => {
-                    select.addEventListener('change', function() {
-                        const gameId = this.getAttribute('data-game');
-                        gameCategories[gameId] = this.value;
-                    });
+                    select.addEventListener('change', function() { gameCategories[this.getAttribute('data-game')] = this.value; });
                 });
             }
             
+            async function enhanceAdminPanel() {
+                await gameStats.fetchVisits(); // Fetch latest count
+                const analyticsDiv = document.getElementById('adminAnalyticsPlaceholder');
+                
+                analyticsDiv.innerHTML = `
+                    <div class="admin-section">
+                        <h3><i class="fas fa-chart-line"></i> Performance</h3>
+                        <div class="analytics-grid">
+                            <div class="analytics-card">
+                                <div class="analytics-label">Total Visits</div>
+                                <div class="analytics-number">${siteVisits}</div>
+                            </div>
+                            <div class="analytics-card">
+                                <div class="analytics-label">Total Games</div>
+                                <div class="analytics-number">${allGamesData.length}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             function addCategory() {
                 const categoryName = newCategoryName.value.trim();
                 if (categoryName && !categories.includes(categoryName)) {
                     categories.push(categoryName);
-                    saveToFirestore().then(success => {
-                        updateCategories();
-                        if (isAdmin) updateGameCategoryEditor();
-                        newCategoryName.value = '';
-                        showToast(`Category "${categoryName}" added!`, 'added');
+                    saveToFirestore().then(() => {
+                        updateCategories(); if (isAdmin) updateGameCategoryEditor(); newCategoryName.value = ''; showToast(`Category "${categoryName}" added!`, 'added');
                     });
-                } else {
-                    showToast('Invalid or duplicate category!', 'removed');
-                }
+                } else { showToast('Invalid or duplicate category!', 'removed'); }
             }
-            
             function editCategory(category) {
                 const newName = prompt('Enter new name:', category);
                 if (newName && newName.trim() && newName !== category) {
                     const index = categories.indexOf(category);
                     if (index !== -1) categories[index] = newName;
-                    Object.keys(gameCategories).forEach(id => {
-                        if (gameCategories[id] === category) gameCategories[id] = newName;
-                    });
-                    saveToFirestore().then(() => {
-                        updateCategories();
-                        if (isAdmin) updateGameCategoryEditor();
-                        renderCurrentView();
-                        showToast('Category renamed!', 'added');
-                    });
+                    Object.keys(gameCategories).forEach(id => { if (gameCategories[id] === category) gameCategories[id] = newName; });
+                    saveToFirestore().then(() => { updateCategories(); if (isAdmin) updateGameCategoryEditor(); renderCurrentView(); showToast('Category renamed!', 'added'); });
                 }
             }
-            
             function deleteCategory(category) {
                 categories = categories.filter(cat => cat !== category);
-                Object.keys(gameCategories).forEach(id => {
-                    if (gameCategories[id] === category) gameCategories[id] = categories[0] || 'Uncategorized';
-                });
-                saveToFirestore().then(() => {
-                    updateCategories();
-                    if (isAdmin) updateGameCategoryEditor();
-                    renderCurrentView();
-                    showToast('Category deleted!', 'added');
-                });
+                Object.keys(gameCategories).forEach(id => { if (gameCategories[id] === category) gameCategories[id] = categories[0] || 'Uncategorized'; });
+                saveToFirestore().then(() => { updateCategories(); if (isAdmin) updateGameCategoryEditor(); renderCurrentView(); showToast('Category deleted!', 'added'); });
             }
-            
-            function saveChanges() {
-                saveToFirestore().then(() => {
-                    updateCategories();
-                    renderCurrentView();
-                    showToast('All changes saved!', 'added');
-                });
-            }
-            
+            function saveChanges() { saveToFirestore().then(() => { updateCategories(); renderCurrentView(); showToast('All changes saved!', 'added'); }); }
             function resetCategories() {
-                categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing'];
-                gameCategories = {};
-                initializeGameCategories();
-                saveToFirestore().then(() => {
-                    updateCategories();
-                    if (isAdmin) updateGameCategoryEditor();
-                    renderCurrentView();
-                    showToast('Categories reset!', 'added');
-                });
+                categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing']; gameCategories = {}; initializeGameCategories();
+                saveToFirestore().then(() => { updateCategories(); if (isAdmin) updateGameCategoryEditor(); renderCurrentView(); showToast('Categories reset!', 'added'); });
             }
             
             function adminLogin() {
                 if (adminPassword.value === '868659') {
-                    isAdmin = true;
-                    localStorage.setItem('gamesbydd_admin', 'true');
-                    adminLoginModal.classList.remove('active');
-                    adminPanel.classList.add('active');
-                    adminBtn.style.display = 'flex';
-                    updateGameCategoryEditor();
-                    updateNotificationManagement();
+                    isAdmin = true; localStorage.setItem('gamesbydd_admin', 'true');
+                    adminLoginModal.classList.remove('active'); adminPanel.classList.add('active'); adminBtn.style.display = 'flex';
+                    updateGameCategoryEditor(); updateNotificationManagement(); enhanceAdminPanel();
                     showToast('Login successful!', 'added');
-                } else {
-                    showToast('Invalid password!', 'removed');
-                }
+                } else { showToast('Invalid password!', 'removed'); }
             }
-            
             function adminLogout() {
-                isAdmin = false;
-                localStorage.removeItem('gamesbydd_admin');
-                adminPanel.classList.remove('active');
-                adminBtn.style.display = 'none';
-                showToast('Logged out!', 'added');
+                isAdmin = false; localStorage.removeItem('gamesbydd_admin');
+                adminPanel.classList.remove('active'); adminBtn.style.display = 'none'; showToast('Logged out!', 'added');
             }
 
             function filterHandler() {
@@ -2176,27 +1347,40 @@
                 this.classList.add('active');
                 currentCategory = this.getAttribute('data-category');
                 currentPage = 1;
-                if(currentView === 'fav') switchTab('all');
-                else renderCurrentView();
+                if(currentView !== 'all') switchTab('all'); else renderCurrentView();
             }
 
             function nextPage() { currentPage++; renderCurrentView(); window.scrollTo({ top: gamesContainer.offsetTop - 100, behavior: 'smooth' }); }
             function prevPage() { currentPage--; renderCurrentView(); window.scrollTo({ top: gamesContainer.offsetTop - 100, behavior: 'smooth' }); }
 
             function setupEventListeners() {
-                hamburgerMenu.addEventListener('click', openSidebar);
+                hamburgerMenu.addEventListener('click', function() {
+                    if (sidebar.classList.contains('active')) closeSidebar();
+                    else openSidebar();
+                });
+                
                 sidebarOverlay.addEventListener('click', closeSidebar);
                 
                 window.addEventListener('scroll', function() {
-                    if (window.pageYOffset > 300) backToTop.classList.add('show');
-                    else backToTop.classList.remove('show');
+                    if (window.pageYOffset > 300) backToTop.classList.add('show'); else backToTop.classList.remove('show');
                 });
-                
                 backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
                 
                 searchInput.addEventListener('input', () => {
-                    currentPage = 1;
-                    renderCurrentView();
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        currentPage = 1; renderCurrentView();
+                    }, 300);
+                });
+
+                // GAME ASSIGNMENT SEARCH LISTENER
+                gameAssignmentSearch.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    const items = document.querySelectorAll('.game-item');
+                    items.forEach(item => {
+                        const name = item.querySelector('span').textContent.toLowerCase();
+                        item.style.display = name.includes(term) ? 'flex' : 'none';
+                    });
                 });
 
                 notificationBell.addEventListener('click', (e) => { e.stopPropagation(); notificationModal.classList.add('active'); document.body.style.overflow = 'hidden'; });
@@ -2206,7 +1390,7 @@
                 sendNotificationBtn.addEventListener('click', () => sendNotification(notificationTitle.value, notificationMessage.value, 'info'));
 
                 adminBtn.addEventListener('click', () => {
-                    if (isAdmin) { adminPanel.classList.add('active'); updateGameCategoryEditor(); updateNotificationManagement(); }
+                    if (isAdmin) { adminPanel.classList.add('active'); updateGameCategoryEditor(); updateNotificationManagement(); enhanceAdminPanel(); }
                     else adminLoginModal.classList.add('active');
                 });
                 
