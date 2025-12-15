@@ -13,6 +13,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Ionicons (Required for the New Login Form) -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
     <!-- Firebase SDK v9 (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
@@ -109,7 +113,7 @@
         .iframe-container { width: 95%; max-width: 1800px; height: 80vh; background: #000; border-radius: 15px; overflow: hidden; box-shadow: 0 0 30px rgba(108, 92, 231, 0.3); position: relative; }
         iframe { width: 100%; height: 100%; border: none; display: block; }
 
-        .toast { position: fixed; top: 90px; right: 20px; background: white; color: var(--dark); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 1000; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-weight: 600; border-left: 5px solid var(--primary); max-width: 300px; }
+        .toast { position: fixed; top: 90px; right: 20px; background: white; color: var(--dark); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 5000; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-weight: 600; border-left: 5px solid var(--primary); max-width: 300px; }
         .toast.show { transform: translateX(0); }
         .toast.added { border-left-color: var(--success); }
         .toast.removed { border-left-color: var(--error); }
@@ -122,8 +126,12 @@
         .brand-text h1 { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.5rem; color: white; line-height: 1.2; }
         .brand-text .tagline { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); margin-top: 2px; }
         .header-actions { display: flex; align-items: center; gap: 15px; }
-        .notification-bell, .admin-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: all 0.3s ease; position: relative; }
-        .notification-bell:hover, .admin-btn:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-2px); }
+        
+        /* Updated Buttons including User Btn */
+        .notification-bell, .admin-btn, .user-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: all 0.3s ease; position: relative; }
+        .notification-bell:hover, .admin-btn:hover, .user-btn:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-2px); }
+        .user-btn.logged-in { background: var(--success); box-shadow: 0 0 10px rgba(0,184,148,0.5); }
+        
         .notification-badge { position: absolute; top: -5px; right: -5px; background: var(--notification-unread); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; }
 
         .hero { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 4rem 5%; text-align: center; position: relative; }
@@ -315,6 +323,91 @@
             .sidebar { width: 280px; left: -280px; }
         }
         @media (max-width: 480px) { .games-container { grid-template-columns: 1fr; } }
+
+
+        /* =================================================================
+           NEW STYLES FOR ANIMATED LOGIN / SIGNUP MODAL
+           ================================================================= */
+        
+        #userAuthModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2500; /* Below Admin, Above Game */
+            display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.5s ease;
+            background: linear-gradient(300deg, #ff4e50, #f9d423, #e100ff, #40e0d0);
+            background-size: 300% 300%;
+            animation: gradientAnim 15s ease infinite;
+        }
+        #userAuthModal.active { display: flex; opacity: 1; }
+        
+        @keyframes gradientAnim {
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+        }
+
+        .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; pointer-events: none; }
+        .circles li { position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2); bottom: -150px; border-radius: 50%; animation: float 20s linear infinite; }
+        .circles li:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+        .circles li:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+        .circles li:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+        .circles li:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+        .circles li:nth-child(5) { left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
+        @keyframes float { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; } }
+
+        .auth-wrapper {
+            position: relative; width: 380px; height: 460px;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 20px; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.2); overflow: hidden;
+            transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 10;
+        }
+
+        .close-auth-modal {
+            position: absolute; top: 15px; right: 15px; color: white;
+            font-size: 1.2rem; cursor: pointer; z-index: 20;
+            background: rgba(0,0,0,0.2); width: 30px; height: 30px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        .close-auth-modal:hover { background: rgba(0,0,0,0.5); }
+
+        .auth-form-box {
+            position: absolute; top: 0; width: 100%; padding: 40px;
+            display: flex; flex-direction: column;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+        }
+
+        .auth-form-box.login { left: 0; transform: translateX(0); opacity: 1; z-index: 2; }
+        .auth-form-box.register { left: 0; transform: translateX(100%); opacity: 0; z-index: 1; }
+        .auth-form-box.forgot { left: 0; transform: translateX(100%); opacity: 0; z-index: 1; }
+
+        .auth-wrapper.active .auth-form-box.login { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+        .auth-wrapper.active .auth-form-box.register { transform: translateX(0); opacity: 1; pointer-events: all; z-index: 5; }
+        
+        .auth-wrapper.active-forgot .auth-form-box.login { transform: translateX(-100%); opacity: 0; }
+        .auth-wrapper.active-forgot .auth-form-box.forgot { transform: translateX(0); opacity: 1; pointer-events: all; z-index: 5; }
+
+        .auth-h2 { font-size: 2em; color: #fff; text-align: center; margin-bottom: 30px; }
+        .auth-input-group { position: relative; width: 100%; height: 50px; margin-bottom: 30px; border-bottom: 2px solid rgba(255, 255, 255, 0.5); }
+        .auth-input-group label { position: absolute; top: 50%; left: 5px; transform: translateY(-50%); color: #fff; pointer-events: none; transition: 0.3s; }
+        .auth-input-group input { width: 100%; height: 100%; background: transparent; border: none; outline: none; color: #fff; padding: 0 35px 0 5px; }
+        .auth-input-group input:focus ~ label, .auth-input-group input:valid ~ label { transform: translateY(-140%) scale(0.8); color: #f9d423; }
+        .auth-input-group .icon { position: absolute; right: 8px; font-size: 1.2em; color: #fff; line-height: 57px; }
+        
+        .auth-btn {
+            width: 100%; height: 45px; background: linear-gradient(90deg, #ff4e50, #f9d423);
+            border: none; border-radius: 40px; cursor: pointer; font-size: 1em; color: #fff; font-weight: 600;
+            transition: 0.3s; margin-top: 10px; display: flex; justify-content: center; align-items: center;
+        }
+        .auth-btn:hover { transform: scale(1.03); box-shadow: 0 5px 20px rgba(255, 78, 80, 0.4); }
+        
+        .auth-link-text { font-size: 0.9em; color: #fff; text-align: center; margin-top: 25px; }
+        .auth-link-text a { color: #fff; text-decoration: none; font-weight: 600; cursor: pointer; }
+
+        .auth-success-screen {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            text-align: center; color: white; z-index: 100; transition: transform 0.5s ease 0.5s;
+        }
+        .auth-success-screen.visible { transform: translate(-50%, -50%) scale(1); }
+        
     </style>
 </head>
 <body>
@@ -396,6 +489,91 @@
             <button id="closeLoginModal" style="background: var(--gray);">Cancel</button>
         </div>
     </div>
+
+    <!-- =============================================================
+         NEW USER LOGIN MODAL
+         ============================================================= -->
+    <div id="userAuthModal">
+        <ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+        
+        <div class="auth-wrapper" id="authWrapper">
+            <div class="close-auth-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></div>
+
+            <!-- Login Form -->
+            <div class="auth-form-box login">
+                <h2 class="auth-h2">Login</h2>
+                <form id="userLoginForm">
+                    <div class="auth-input-group">
+                        <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                        <input type="email" required>
+                        <label>Email</label>
+                    </div>
+                    <div class="auth-input-group">
+                        <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+                        <input type="password" required>
+                        <label>Password</label>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:#fff; font-size:0.85em; margin:-15px 0 15px;">
+                        <label><input type="checkbox" style="margin-right:5px;">Remember me</label>
+                        <a href="#" class="forgot-link" style="color:#fff; text-decoration:none;">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="auth-btn">Login</button>
+                    <div class="auth-link-text">
+                        <p>Don't have an account? <a href="#" class="register-link">Register</a></p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form-box register">
+                <h2 class="auth-h2">Registration</h2>
+                <form id="userRegisterForm">
+                    <div class="auth-input-group">
+                        <span class="icon"><ion-icon name="person"></ion-icon></span>
+                        <input type="text" required>
+                        <label>Full Name</label>
+                    </div>
+                    <div class="auth-input-group">
+                        <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                        <input type="email" required>
+                        <label>Email Address</label>
+                    </div>
+                    <div class="auth-input-group">
+                        <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+                        <input type="password" required>
+                        <label>Create Password</label>
+                    </div>
+                    <button type="submit" class="auth-btn">Register</button>
+                    <div class="auth-link-text">
+                        <p>Already have an account? <a href="#" class="login-link">Login</a></p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Forgot Password -->
+            <div class="auth-form-box forgot">
+                <h2 class="auth-h2">Reset Password</h2>
+                <form id="userForgotForm">
+                    <div class="auth-input-group">
+                        <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                        <input type="email" required>
+                        <label>Email Address</label>
+                    </div>
+                    <button type="submit" class="auth-btn">Send Link</button>
+                    <div class="auth-link-text">
+                        <p>Back to <a href="#" class="login-link-forgot">Login</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="auth-success-screen" id="authSuccessScreen">
+            <h1>Welcome!</h1>
+            <p>You have successfully logged in.</p>
+        </div>
+    </div>
+    <!-- END NEW USER MODAL -->
+
 
     <!-- UPDATED ADMIN PANEL HTML -->
     <div class="admin-panel" id="adminPanel">
@@ -481,6 +659,12 @@
                     <i class="fas fa-bell"></i>
                     <div class="notification-badge" id="notificationBadge" style="display: none;">0</div>
                 </div>
+                
+                <!-- NEW USER ICON ADDED HERE -->
+                <div class="user-btn" id="userLoginBtn">
+                    <i class="fas fa-user"></i>
+                </div>
+                
                 <div class="admin-btn" id="adminBtn">
                     <i class="fas fa-user-shield"></i>
                 </div>
@@ -658,11 +842,242 @@
             let siteVisits = 0;
 
             // =============================================
-            // ENHANCED FEATURES OBJECTS
+            // LOGIN / AUTH SYSTEM LOGIC
+            // =============================================
+            
+            const userLoginBtn = document.getElementById('userLoginBtn');
+            const userAuthModal = document.getElementById('userAuthModal');
+            const authWrapper = document.getElementById('authWrapper');
+            const authSuccessScreen = document.getElementById('authSuccessScreen');
+            
+            // Auth Links
+            const loginLink = document.querySelector('.login-link');
+            const registerLink = document.querySelector('.register-link');
+            const forgotLink = document.querySelector('.forgot-link');
+            const loginLinkForgot = document.querySelector('.login-link-forgot');
+
+            // User State
+            let isUserLoggedIn = localStorage.getItem('gamesbydd_user_logged_in') === 'true';
+
+            function updateLoginIcon() {
+                if(isUserLoggedIn) {
+                    userLoginBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    userLoginBtn.classList.add('logged-in');
+                } else {
+                    userLoginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                    userLoginBtn.classList.remove('logged-in');
+                }
+            }
+
+            // Close Modal Function
+            window.closeAuthModal = function() {
+                userAuthModal.classList.remove('active');
+                setTimeout(() => {
+                    authWrapper.classList.remove('active', 'active-forgot');
+                    authWrapper.style.height = '460px';
+                    authSuccessScreen.classList.remove('visible');
+                    authWrapper.style.transform = 'scale(1)';
+                    authWrapper.style.opacity = '1';
+                }, 500);
+                document.body.style.overflow = 'auto';
+            };
+
+            // User Icon Click Event
+            userLoginBtn.addEventListener('click', () => {
+                if(isUserLoggedIn) {
+                    if(confirm("Do you want to log out?")) {
+                        isUserLoggedIn = false;
+                        localStorage.removeItem('gamesbydd_user_logged_in');
+                        updateLoginIcon();
+                        showToast("Logged out successfully", "removed");
+                    }
+                } else {
+                    userAuthModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+
+            // Switch Auth Views
+            registerLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                authWrapper.classList.add('active');
+                authWrapper.style.height = "520px";
+            });
+
+            loginLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                authWrapper.classList.remove('active');
+                authWrapper.style.height = "460px";
+            });
+
+            forgotLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                authWrapper.classList.add('active-forgot');
+                authWrapper.style.height = "300px";
+            });
+
+            loginLinkForgot.addEventListener('click', (e) => {
+                e.preventDefault();
+                authWrapper.classList.remove('active-forgot');
+                authWrapper.style.height = "460px";
+            });
+
+            // =============================================
+            // REAL FIRESTORE AUTHENTICATION LOGIC
+            // =============================================
+
+            // 1. Handle Registration
+            const registerForm = document.getElementById('userRegisterForm');
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = registerForm.querySelector('.auth-btn');
+                const originalText = btn.innerText;
+                
+                // Get Input Values
+                const inputs = registerForm.querySelectorAll('input');
+                const fullName = inputs[0].value;
+                const email = inputs[1].value.toLowerCase().trim();
+                const password = inputs[2].value;
+
+                if(!window.firebaseDb) {
+                    showToast("Database not connected yet", "removed");
+                    return;
+                }
+
+                btn.innerText = "Processing...";
+
+                try {
+                    const { addDoc, collection, query, where, getDocs } = window.firebaseMethods;
+                    const db = window.firebaseDb;
+                    
+                    // Check if email already exists
+                    const usersRef = collection(db, 'users');
+                    const q = query(usersRef, where('email', '==', email));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        showToast("Email already registered!", "removed");
+                        btn.innerText = originalText;
+                        return;
+                    }
+
+                    // Create User Document
+                    await addDoc(collection(db, 'users'), {
+                        fullName: fullName,
+                        email: email,
+                        password: password, // Note: In a production app, use Firebase Auth service instead of storing passwords here
+                        joined: new Date().toISOString()
+                    });
+
+                    btn.innerText = "Success";
+                    btn.style.background = "#00B894";
+
+                    setTimeout(() => {
+                        showToast("Account created! Please Login.", "added");
+                        registerForm.reset();
+                        btn.innerText = originalText;
+                        btn.style.background = "";
+                        // Switch to login view automatically
+                        document.querySelector('.login-link').click();
+                    }, 1500);
+
+                } catch (error) {
+                    console.error("Registration Error:", error);
+                    showToast("Registration failed. Try again.", "removed");
+                    btn.innerText = originalText;
+                }
+            });
+
+            // 2. Handle Login
+            const loginForm = document.getElementById('userLoginForm');
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = loginForm.querySelector('.auth-btn');
+                const originalText = btn.innerText;
+
+                // Get Input Values
+                const inputs = loginForm.querySelectorAll('input');
+                const email = inputs[0].value.toLowerCase().trim();
+                const password = inputs[1].value;
+
+                if(!window.firebaseDb) {
+                    showToast("Database not connected yet", "removed");
+                    return;
+                }
+
+                btn.innerText = "Verifying...";
+
+                try {
+                    const { collection, query, where, getDocs } = window.firebaseMethods;
+                    const db = window.firebaseDb;
+
+                    // Query Database for matching Email AND Password
+                    const usersRef = collection(db, 'users');
+                    const q = query(usersRef, 
+                        where('email', '==', email), 
+                        where('password', '==', password)
+                    );
+                    
+                    const querySnapshot = await getDocs(q);
+
+                    if (querySnapshot.empty) {
+                        // No matching user found
+                        showToast("Invalid Email or Password", "removed");
+                        btn.innerText = originalText;
+                        return;
+                    }
+
+                    // Login Success
+                    const userData = querySnapshot.docs[0].data();
+                    
+                    btn.innerText = "Success";
+                    btn.style.background = "#00B894";
+
+                    setTimeout(() => {
+                        // Set Local State
+                        isUserLoggedIn = true;
+                        localStorage.setItem('gamesbydd_user_logged_in', 'true');
+                        localStorage.setItem('gamesbydd_user_name', userData.fullName); // Save name for welcome
+                        updateLoginIcon();
+
+                        // Transition Animation
+                        authWrapper.style.transform = 'scale(0)';
+                        authWrapper.style.opacity = '0';
+                        authSuccessScreen.querySelector('h1').innerText = `Hi, ${userData.fullName.split(' ')[0]}!`;
+                        authSuccessScreen.querySelector('p').innerText = "Welcome back to GamesbyDD!";
+                        authSuccessScreen.classList.add('visible');
+
+                        setTimeout(() => {
+                            closeAuthModal();
+                            btn.innerText = originalText;
+                            btn.style.background = "";
+                            loginForm.reset();
+                            showToast("Logged in successfully", "added");
+                        }, 1500);
+                    }, 800);
+
+                } catch (error) {
+                    console.error("Login Error:", error);
+                    showToast("Login failed. Check connection.", "removed");
+                    btn.innerText = originalText;
+                }
+            });
+
+            // 3. Handle Forgot Password (Simulation Only as we don't have email service)
+            const forgotForm = document.getElementById('userForgotForm');
+            forgotForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                showToast("This feature requires SMTP configuration.", "warning");
+            });
+
+            // Init Icon
+            updateLoginIcon();
+
+            // =============================================
+            // EXISTING GAME LOGIC
             // =============================================
             
             const gameStats = {
-                // We will fetch site visits from Firebase
                 fetchVisits: async function() {
                     if (!window.firebaseDb) return;
                     const { doc, getDoc } = window.firebaseMethods;
@@ -670,17 +1085,12 @@
                         const docRef = doc(window.firebaseDb, 'settings', 'analytics');
                         const docSnap = await getDoc(docRef);
                         if (docSnap.exists()) {
-                            // CHANGED: fetching 'totalUniqueVisitors' instead of 'totalVisits'
                             siteVisits = docSnap.data().totalUniqueVisitors || 0;
                         }
                     } catch (e) { console.error("Error fetching visits", e); }
                 }
             };
 
-            // =============================================
-            // UTILITY FUNCTIONS
-            // =============================================
-            
             async function waitForFirebase() {
                 let checks = 0;
                 while (!window.firebaseDb && checks < 20) {
@@ -690,23 +1100,17 @@
                 return window.firebaseDb;
             }
 
-            // SITE VISIT COUNTER LOGIC
             async function incrementSiteVisits() {
                 if (!window.firebaseDb) return;
-                
-                // Use session storage so we don't count refreshing the page multiple times in one session
-                // This ensures we only count NEW devices or NEW sessions (visitors)
                 if (sessionStorage.getItem('visit_counted')) return;
 
                 const { doc, setDoc, increment } = window.firebaseMethods;
                 try {
                     const analyticsRef = doc(window.firebaseDb, 'settings', 'analytics');
-                    // CHANGED: Using 'totalUniqueVisitors' effectively restarts the count to 0 in your DB
-                    // This increments only once per session/device visit
                     await setDoc(analyticsRef, { totalUniqueVisitors: increment(1) }, { merge: true });
                     sessionStorage.setItem('visit_counted', 'true');
                 } catch (error) {
-                    console.error("Could not increment visits (likely permission issue if not auth)", error);
+                    console.error("Could not increment visits", error);
                 }
             }
 
@@ -944,13 +1348,9 @@
                 return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
             }
 
-            // =============================================
-            // GAME LOGIC & LOADING
-            // =============================================
-
             async function init() {
                 await waitForFirebase();
-                incrementSiteVisits(); // Count visit on load
+                incrementSiteVisits(); 
                 await loadGamesWithCache();
                 
                 setupFirestoreListener();
@@ -1034,10 +1434,6 @@
                     }
                 });
             }
-
-            // =============================================
-            // UI INTERACTION
-            // =============================================
 
             function openSidebar() {
                 sidebar.classList.add('active');
@@ -1251,7 +1647,6 @@
                 if (isAdmin) updateAdminCategoryList();
             }
             
-            // Admin Functions
             function updateAdminCategoryList() {
                 categoryList.innerHTML = '';
                 categories.forEach(category => {
@@ -1283,10 +1678,8 @@
             }
             
             async function enhanceAdminPanel() {
-                await gameStats.fetchVisits(); // Fetch latest count
+                await gameStats.fetchVisits(); 
                 const analyticsDiv = document.getElementById('adminAnalyticsPlaceholder');
-                
-                // CHANGED: Label is now TOTAL VISITORS
                 analyticsDiv.innerHTML = `
                     <div class="admin-section">
                         <h3><i class="fas fa-chart-line"></i> Performance</h3>
@@ -1377,7 +1770,6 @@
                     }, 300);
                 });
 
-                // GAME ASSIGNMENT SEARCH LISTENER
                 gameAssignmentSearch.addEventListener('input', (e) => {
                     const term = e.target.value.toLowerCase();
                     const items = document.querySelectorAll('.game-item');
