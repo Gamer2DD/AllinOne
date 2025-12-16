@@ -17,10 +17,12 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 
-    <!-- Firebase SDK v9 (Modular) -->
+    <!-- Firebase SDK v9 (Modular) - UPDATED FOR AUTH -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, getDocs, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        // NEW: Import Authentication functions
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDzrJM46NhXTsfECgrWJ_-4XBdHvMex1bI",
@@ -35,12 +37,16 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app); // Initialize Auth
 
         window.firebaseApp = app;
         window.firebaseDb = db;
+        window.firebaseAuth = auth; // Expose to window
         window.firebaseMethods = { 
             getDoc, setDoc, onSnapshot, doc, collection, addDoc, getDocs, 
-            updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, increment 
+            updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, increment,
+            // Auth methods
+            createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut
         };
         
         window.dispatchEvent(new Event('firebase-ready'));
@@ -550,16 +556,16 @@
                 </form>
             </div>
 
-            <!-- Forgot Password -->
+            <!-- Forgot Password (Secure Version) -->
             <div class="auth-form-box forgot">
                 <h2 class="auth-h2">Reset Password</h2>
                 <form id="userForgotForm">
                     <div class="auth-input-group">
                         <span class="icon"><ion-icon name="mail"></ion-icon></span>
-                        <input type="email" required>
+                        <input type="email" id="resetEmailInput" required>
                         <label>Email Address</label>
                     </div>
-                    <button type="submit" class="auth-btn">Send Link</button>
+                    <button type="submit" class="auth-btn">Send Reset Link</button>
                     <div class="auth-link-text">
                         <p>Back to <a href="#" class="login-link-forgot">Login</a></p>
                     </div>
@@ -923,49 +929,38 @@
             });
 
             // =============================================
-            // REAL FIRESTORE AUTHENTICATION LOGIC
+            // SECURE FIREBASE AUTHENTICATION LOGIC
             // =============================================
 
-            // 1. Handle Registration
+            // 1. SECURE REGISTRATION
             const registerForm = document.getElementById('userRegisterForm');
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = registerForm.querySelector('.auth-btn');
                 const originalText = btn.innerText;
                 
-                // Get Input Values
                 const inputs = registerForm.querySelectorAll('input');
                 const fullName = inputs[0].value;
-                const email = inputs[1].value.toLowerCase().trim();
+                const email = inputs[1].value.trim();
                 const password = inputs[2].value;
 
-                if(!window.firebaseDb) {
-                    showToast("Database not connected yet", "removed");
-                    return;
-                }
+                if(!window.firebaseAuth) { showToast("Firebase not ready", "removed"); return; }
 
-                btn.innerText = "Processing...";
+                btn.innerText = "Creating Account...";
 
                 try {
-                    const { addDoc, collection, query, where, getDocs } = window.firebaseMethods;
+                    const { createUserWithEmailAndPassword, setDoc, doc } = window.firebaseMethods;
+                    const auth = window.firebaseAuth;
                     const db = window.firebaseDb;
-                    
-                    // Check if email already exists
-                    const usersRef = collection(db, 'users');
-                    const q = query(usersRef, where('email', '==', email));
-                    const querySnapshot = await getDocs(q);
 
-                    if (!querySnapshot.empty) {
-                        showToast("Email already registered!", "removed");
-                        btn.innerText = originalText;
-                        return;
-                    }
+                    // 1. Create secure auth user
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
 
-                    // Create User Document
-                    await addDoc(collection(db, 'users'), {
+                    // 2. Save user details (Name) to Firestore Database
+                    await setDoc(doc(db, "users", user.uid), {
                         fullName: fullName,
                         email: email,
-                        password: password, // Note: In a production app, use Firebase Auth service instead of storing passwords here
                         joined: new Date().toISOString()
                     });
 
@@ -973,78 +968,70 @@
                     btn.style.background = "#00B894";
 
                     setTimeout(() => {
-                        showToast("Account created! Please Login.", "added");
+                        showToast("Account created! Logging you in...", "added");
                         registerForm.reset();
-                        btn.innerText = originalText;
-                        btn.style.background = "";
-                        // Switch to login view automatically
-                        document.querySelector('.login-link').click();
+                        // Auto Login Transition
+                        isUserLoggedIn = true;
+                        localStorage.setItem('gamesbydd_user_logged_in', 'true');
+                        localStorage.setItem('gamesbydd_user_name', fullName);
+                        updateLoginIcon();
+                        closeAuthModal();
                     }, 1500);
 
                 } catch (error) {
-                    console.error("Registration Error:", error);
-                    showToast("Registration failed. Try again.", "removed");
+                    console.error("Reg Error:", error);
+                    let msg = "Registration failed.";
+                    if(error.code === 'auth/email-already-in-use') msg = "Email already in use.";
+                    if(error.code === 'auth/weak-password') msg = "Password is too weak (min 6 chars).";
+                    showToast(msg, "removed");
                     btn.innerText = originalText;
                 }
             });
 
-            // 2. Handle Login
+            // 2. SECURE LOGIN
             const loginForm = document.getElementById('userLoginForm');
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = loginForm.querySelector('.auth-btn');
                 const originalText = btn.innerText;
 
-                // Get Input Values
                 const inputs = loginForm.querySelectorAll('input');
-                const email = inputs[0].value.toLowerCase().trim();
+                const email = inputs[0].value.trim();
                 const password = inputs[1].value;
-
-                if(!window.firebaseDb) {
-                    showToast("Database not connected yet", "removed");
-                    return;
-                }
 
                 btn.innerText = "Verifying...";
 
                 try {
-                    const { collection, query, where, getDocs } = window.firebaseMethods;
+                    const { signInWithEmailAndPassword, getDoc, doc } = window.firebaseMethods;
+                    const auth = window.firebaseAuth;
                     const db = window.firebaseDb;
 
-                    // Query Database for matching Email AND Password
-                    const usersRef = collection(db, 'users');
-                    const q = query(usersRef, 
-                        where('email', '==', email), 
-                        where('password', '==', password)
-                    );
-                    
-                    const querySnapshot = await getDocs(q);
+                    // 1. Secure Login
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
 
-                    if (querySnapshot.empty) {
-                        // No matching user found
-                        showToast("Invalid Email or Password", "removed");
-                        btn.innerText = originalText;
-                        return;
+                    // 2. Fetch User Name from Database
+                    let userName = "User";
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        userName = docSnap.data().fullName;
                     }
 
-                    // Login Success
-                    const userData = querySnapshot.docs[0].data();
-                    
                     btn.innerText = "Success";
                     btn.style.background = "#00B894";
 
                     setTimeout(() => {
-                        // Set Local State
                         isUserLoggedIn = true;
                         localStorage.setItem('gamesbydd_user_logged_in', 'true');
-                        localStorage.setItem('gamesbydd_user_name', userData.fullName); // Save name for welcome
+                        localStorage.setItem('gamesbydd_user_name', userName);
                         updateLoginIcon();
 
                         // Transition Animation
                         authWrapper.style.transform = 'scale(0)';
                         authWrapper.style.opacity = '0';
-                        authSuccessScreen.querySelector('h1').innerText = `Hi, ${userData.fullName.split(' ')[0]}!`;
-                        authSuccessScreen.querySelector('p').innerText = "Welcome back to GamesbyDD!";
+                        authSuccessScreen.querySelector('h1').innerText = `Hi, ${userName.split(' ')[0]}!`;
+                        authSuccessScreen.querySelector('p').innerText = "Welcome back.";
                         authSuccessScreen.classList.add('visible');
 
                         setTimeout(() => {
@@ -1058,16 +1045,49 @@
 
                 } catch (error) {
                     console.error("Login Error:", error);
-                    showToast("Login failed. Check connection.", "removed");
+                    let msg = "Login Failed";
+                    if(error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') msg = "Invalid Email or Password";
+                    showToast(msg, "removed");
                     btn.innerText = originalText;
                 }
             });
 
-            // 3. Handle Forgot Password (Simulation Only as we don't have email service)
+            // 3. SECURE FORGOT PASSWORD (Sends Real Email)
             const forgotForm = document.getElementById('userForgotForm');
-            forgotForm.addEventListener('submit', (e) => {
+            forgotForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                showToast("This feature requires SMTP configuration.", "warning");
+                const btn = forgotForm.querySelector('.auth-btn');
+                const emailInput = document.getElementById('resetEmailInput');
+                const email = emailInput.value.trim();
+                const originalText = btn.innerText;
+
+                btn.innerText = "Sending Link...";
+
+                try {
+                    const { sendPasswordResetEmail } = window.firebaseMethods;
+                    const auth = window.firebaseAuth;
+
+                    await sendPasswordResetEmail(auth, email);
+
+                    btn.innerText = "Email Sent!";
+                    btn.style.background = "#00B894";
+                    
+                    showToast("Reset link sent to your email!", "added");
+
+                    setTimeout(() => {
+                        document.querySelector('.login-link-forgot').click();
+                        forgotForm.reset();
+                        btn.innerText = originalText;
+                        btn.style.background = "";
+                    }, 2000);
+
+                } catch (error) {
+                    console.error("Reset Error:", error);
+                    let msg = "Error sending email.";
+                    if(error.code === 'auth/user-not-found') msg = "Email not found.";
+                    showToast(msg, "removed");
+                    btn.innerText = originalText;
+                }
             });
 
             // Init Icon
@@ -1813,4 +1833,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
