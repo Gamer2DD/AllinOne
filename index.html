@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GamesbyDD | Play Free Online Games - No Downloads</title>
-    <meta name="description" content="Play free online games instantly in your browser. No downloads required. Collection of action, puzzle, strategy and adventure games.">
-    <meta name="theme-color" content="#6C5CE7">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>GamesbyDD · Play Free Online Games</title>
+    <meta name="description" content="Instant‑play browser games: action, puzzle, strategy & more. No downloads, no sign‑up. Fresh daily!">
+    <meta name="theme-color" content="#6C5CE7" id="themeColor">
     <meta name="mobile-web-app-capable" content="yes">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Firebase SDK v9 (Modular) - Only Firestore, Auth removed -->
+    <!-- Firebase v9 (Modular) - only Firestore used -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, getDocs, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
@@ -43,7 +43,11 @@
     </script>
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         :root {
             --primary: #6C5CE7;
@@ -63,151 +67,953 @@
             --admin-bg: #1e1e2f;
             --notification-bg: #FFEAA7;
             --notification-unread: #FD79A8;
+            --skeleton-start: #e0e0e0;
+            --skeleton-end: #f0f0f0;
+            --overlay: rgba(0,0,0,0.5);
+            --text-on-primary: white;
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s ease;
         }
 
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--light); color: var(--dark); min-height: 100vh; line-height: 1.6; }
+        /* dark mode variables */
+        body.dark {
+            --primary: #8a7cf3;
+            --primary-dark: #6f5fe0;
+            --secondary: #fb8db4;
+            --accent: #2dd4d4;
+            --dark: #edf2f7;
+            --light: #1a202c;
+            --gray: #a0aec0;
+            --gray-light: #2d3748;
+            --card-bg: #2d3748;
+            --header-bg: linear-gradient(135deg, #4338ca 0%, #6b21a5 100%);
+            --footer-bg: #0f172a;
+            --admin-bg: #0b1120;
+            --notification-bg: #5b4b1f;
+            --notification-unread: #b23b6e;
+            --skeleton-start: #3a3f4e;
+            --skeleton-end: #4a4f5e;
+            --overlay: rgba(0,0,0,0.7);
+            --text-on-primary: #fff;
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
 
-        /* --- HAMBURGER & SIDEBAR --- */
-        .hamburger-menu { display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; width: 30px; height: 22px; margin-right: 15px; z-index: 1100; }
-        .hamburger-menu span { display: block; height: 3px; width: 100%; background-color: white; border-radius: 4px; transition: all 0.4s ease-in-out; transform-origin: left center; }
-        .hamburger-menu.active span:nth-child(1) { transform: rotate(45deg); top: 0px; left: 2px; }
-        .hamburger-menu.active span:nth-child(2) { width: 0%; opacity: 0; }
-        .hamburger-menu.active span:nth-child(3) { transform: rotate(-45deg); top: 20px; left: 2px; }
+        html {
+            scroll-behavior: smooth;
+        }
 
-        .sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: white; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); z-index: 1000; transition: left 0.4s cubic-bezier(0.77, 0.2, 0.05, 1.0); overflow-y: auto; padding-top: 80px; }
-        .sidebar.active { left: 0; }
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; display: none; opacity: 0; transition: opacity 0.3s ease; }
-        .sidebar-overlay.active { display: block; opacity: 1; }
-        .sidebar-section { padding: 20px; border-bottom: 1px solid var(--gray-light); }
-        .sidebar-section h3 { font-family: 'Poppins', sans-serif; font-size: 1.2rem; margin-bottom: 15px; color: var(--primary); }
-        .sidebar-links { list-style: none; }
-        .sidebar-links li { margin-bottom: 10px; opacity: 0; transform: translateX(-20px); transition: all 0.4s ease; }
-        .sidebar.active .sidebar-links li { opacity: 1; transform: translateX(0); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+            line-height: 1.6;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        /* --- skeleton loading --- */
+        .skeleton-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-light);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .skeleton-img {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(90deg, var(--skeleton-start) 25%, var(--skeleton-end) 50%, var(--skeleton-start) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        .skeleton-line {
+            height: 20px;
+            background: linear-gradient(90deg, var(--skeleton-start) 25%, var(--skeleton-end) 50%, var(--skeleton-start) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+            margin: 12px 16px 8px;
+        }
+        .skeleton-line.short {
+            width: 60%;
+            margin: 0 16px 16px;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* --- hamburger & sidebar --- */
+        .hamburger-menu {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            width: 30px;
+            height: 22px;
+            margin-right: 15px;
+            z-index: 1100;
+        }
+        .hamburger-menu span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background-color: white;
+            border-radius: 4px;
+            transition: var(--transition);
+            transform-origin: left center;
+        }
+        .hamburger-menu.active span:nth-child(1) {
+            transform: rotate(45deg);
+            left: 2px;
+        }
+        .hamburger-menu.active span:nth-child(2) {
+            width: 0%;
+            opacity: 0;
+        }
+        .hamburger-menu.active span:nth-child(3) {
+            transform: rotate(-45deg);
+            left: 2px;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100vh;
+            background: var(--card-bg);
+            box-shadow: 2px 0 10px var(--overlay);
+            z-index: 1000;
+            transition: left 0.4s cubic-bezier(0.77, 0.2, 0.05, 1.0);
+            overflow-y: auto;
+            padding-top: 80px;
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay);
+            z-index: 999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        .sidebar-section h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        .sidebar-links {
+            list-style: none;
+        }
+        .sidebar-links li {
+            margin-bottom: 10px;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: var(--transition);
+        }
+        .sidebar.active .sidebar-links li {
+            opacity: 1;
+            transform: translateX(0);
+        }
         .sidebar.active .sidebar-links li:nth-child(1) { transition-delay: 0.1s; }
         .sidebar.active .sidebar-links li:nth-child(2) { transition-delay: 0.2s; }
         .sidebar.active .sidebar-links li:nth-child(3) { transition-delay: 0.3s; }
         .sidebar.active .sidebar-links li:nth-child(4) { transition-delay: 0.4s; }
-        .sidebar-links a { text-decoration: none; color: var(--dark); display: flex; align-items: center; gap: 10px; padding: 8px 0; transition: color 0.3s; }
-        .sidebar-links a:hover { color: var(--primary); padding-left: 5px; }
+        .sidebar-links a {
+            text-decoration: none;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            transition: color 0.3s;
+        }
+        .sidebar-links a:hover {
+            color: var(--primary);
+            padding-left: 5px;
+        }
 
-        /* --- ADS & MODALS --- */
-        .ad-container { width: 100%; display: flex; justify-content: center; align-items: center; margin: 20px 0; padding: 0 10px; }
-        .ad-box { background-color: #eaebef; border: 1px dashed #b2bec3; width: 100%; max-width: 970px; height: 90px; display: flex; justify-content: center; align-items: center; color: #636e72; font-size: 0.9rem; border-radius: 8px; position: relative; overflow: hidden; }
-        .ad-box::before { content: 'Advertisement'; position: absolute; top: 0; left: 0; background: #dfe6e9; color: #636e72; font-size: 0.6rem; padding: 2px 6px; text-transform: uppercase; }
+        /* --- ads & modals (unchanged) --- */
+        .ad-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            padding: 0 10px;
+        }
+        .ad-box {
+            background-color: #eaebef;
+            border: 1px dashed #b2bec3;
+            width: 100%;
+            max-width: 970px;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #636e72;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .ad-box::before {
+            content: 'Advertisement';
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #dfe6e9;
+            color: #636e72;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            text-transform: uppercase;
+        }
         .ad-leaderboard { max-width: 970px; height: 90px; }
         .ad-content { max-width: 728px; height: 90px; }
         .ad-sidebar { max-width: 280px; height: 250px; margin: 0 auto; }
         .ad-modal { max-width: 728px; height: 90px; background: #2d3436; border-color: #444; margin-top: 15px; color: #a4b0be; }
 
-        .game-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.3s ease; }
-        .game-modal.active { display: flex; opacity: 1; }
-        .modal-header { width: 95%; max-width: 1800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: white; }
-        .modal-title { font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 600; }
-        .close-game-btn { background: var(--error); color: white; border: none; padding: 8px 20px; border-radius: 50px; cursor: pointer; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
-        .close-game-btn:hover { background: #c43075; transform: scale(1.05); }
-        .iframe-container { width: 95%; max-width: 1800px; height: 80vh; background: #000; border-radius: 15px; overflow: hidden; box-shadow: 0 0 30px rgba(108, 92, 231, 0.3); position: relative; }
-        iframe { width: 100%; height: 100%; border: none; display: block; }
+        .game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .game-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-header {
+            width: 95%;
+            max-width: 1800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            color: white;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .modal-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .fullscreen-btn, .close-game-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .fullscreen-btn:hover, .close-game-btn:hover {
+            background: var(--error);
+            transform: scale(1.05);
+        }
+        .iframe-container {
+            width: 95%;
+            max-width: 1800px;
+            height: 80vh;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(108, 92, 231, 0.3);
+            position: relative;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
 
-        .toast { position: fixed; top: 90px; right: 20px; background: white; color: var(--dark); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 5000; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-weight: 600; border-left: 5px solid var(--primary); max-width: 300px; }
-        .toast.show { transform: translateX(0); }
-        .toast.added { border-left-color: var(--success); }
-        .toast.removed { border-left-color: var(--error); }
+        .toast {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            background: var(--card-bg);
+            color: var(--dark);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-hover);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 5000;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-weight: 600;
+            border-left: 5px solid var(--primary);
+            max-width: 300px;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.added {
+            border-left-color: var(--success);
+        }
+        .toast.removed {
+            border-left-color: var(--error);
+        }
 
-        /* --- HEADER & HERO --- */
-        header { background: var(--header-bg); padding: 18px 5%; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); position: sticky; top: 0; z-index: 100; }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .logo { width: 45px; height: 45px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.3rem; box-shadow: 0 4px 10px rgba(0, 206, 201, 0.3); }
-        .brand-text h1 { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.5rem; color: white; line-height: 1.2; }
-        .brand-text .tagline { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); margin-top: 2px; }
-        .header-actions { display: flex; align-items: center; gap: 15px; }
+        /* --- header & hero --- */
+        header {
+            background: var(--header-bg);
+            padding: 18px 5%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo {
+            width: 45px;
+            height: 45px;
+            background: var(--accent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 10px rgba(0, 206, 201, 0.3);
+        }
+        .brand-text h1 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: white;
+            line-height: 1.2;
+        }
+        .brand-text .tagline {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 2px;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
         
-        /* Removed user-btn styles */
-        .notification-bell, .admin-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: all 0.3s ease; position: relative; }
-        .notification-bell:hover, .admin-btn:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-2px); }
+        .theme-toggle, .notification-bell, .admin-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            border: none;
+            font-size: 1.2rem;
+        }
+        .theme-toggle:hover, .notification-bell:hover, .admin-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
         
-        .notification-badge { position: absolute; top: -5px; right: -5px; background: var(--notification-unread); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--notification-unread);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
 
-        .hero { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 4rem 5%; text-align: center; position: relative; }
-        .hero-content { max-width: 800px; margin: 0 auto; position: relative; z-index: 2; }
-        .hero h2 { font-family: 'Poppins', sans-serif; font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; }
-        .hero p { font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9; }
-        .hero-features { display: flex; justify-content: center; gap: 2rem; margin-top: 2rem; flex-wrap: wrap; }
-        .feature { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 4rem 5%;
+            text-align: center;
+            position: relative;
+        }
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        .hero h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .hero-features {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
 
-        /* --- MAIN CONTENT & GAME GRID (3 columns fixed) --- */
-        main { padding: 2rem 5%; max-width: 1400px; margin: 0 auto; }
-        .section-header { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
-        .section-title { font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--dark); }
+        /* --- main content --- */
+        main {
+            padding: 2rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .section-header {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
         
-        .tabs { display: flex; gap: 1rem; border-bottom: 2px solid var(--gray-light); overflow-x: auto; padding-bottom: 5px; }
-        .tab { padding: 0.75rem 1.5rem; font-weight: 600; color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; }
-        .tab.active { color: var(--primary); border-bottom-color: var(--accent); }
-        .tab .badge { background: var(--gray-light); color: var(--dark); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: 5px; transition: all 0.3s; }
-        .tab.active .badge { background: var(--secondary); color: white; }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid var(--gray-light);
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: thin;
+        }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--accent);
+        }
+        .tab .badge {
+            background: var(--gray-light);
+            color: var(--dark);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-left: 5px;
+            transition: var(--transition);
+        }
+        .tab.active .badge {
+            background: var(--secondary);
+            color: white;
+        }
         
-        .filters { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
-        .filter { padding: 0.5rem 1rem; border-radius: 20px; background: white; border: 1px solid var(--gray-light); color: var(--gray); font-weight: 500; cursor: pointer; transition: all 0.3s ease; }
-        .filter.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .filter {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--gray-light);
+            color: var(--gray);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .filter.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
 
-        /* 3x3 grid fixed - min-height removed to avoid extra space when few games */
-        .games-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 2rem; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .game-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; border: 1px solid var(--gray-light); display: flex; flex-direction: column; position: relative; animation: fadeInUp 0.5s ease backwards; }
-        .game-card:nth-child(1) { animation-delay: 0.05s; } .game-card:nth-child(2) { animation-delay: 0.1s; } .game-card:nth-child(3) { animation-delay: 0.15s; }
-        .game-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); }
-        .game-header { position: relative; height: 160px; overflow: hidden; }
-        .game-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease, opacity 0.5s ease; opacity: 0; }
-        .game-image.loaded { opacity: 1; }
-        .game-card:hover .game-image { transform: scale(1.05); }
-        .game-badge { position: absolute; top: 10px; right: 10px; background: var(--accent); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .favorite-btn { position: absolute; top: 10px; left: 10px; width: 32px; height: 32px; background: rgba(255, 255, 255, 0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gray); transition: all 0.2s ease; z-index: 5; }
-        .favorite-btn.active { color: var(--error); }
-        .game-content { padding: 1.25rem; display: flex; flex-direction: column; } /* removed flex-grow: 1 */
-        .game-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; line-height: 1.4; }
-        .game-meta { display: flex; justify-content: space-between; color: var(--gray); font-size: 0.85rem; margin-bottom: 1rem; }
-        /* Button now uses simple margin-top instead of auto to stay close to content */
-        .play-btn { padding: 0.75rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
-        .play-btn:hover { background: var(--primary-dark); }
+        /* games grid: 2 columns on mobile, 3 on larger */
+        .games-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+        @media (min-width: 600px) {
+            .games-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 25px;
+            }
+        }
 
-        .pagination { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 40px; padding: 20px 0; }
-        .page-btn { background: var(--primary); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); }
-        .page-btn:disabled { background: var(--gray-light); color: var(--gray); cursor: not-allowed; box-shadow: none; }
-        .page-info { font-size: 1.1rem; font-weight: 600; color: var(--dark); background: var(--gray-light); padding: 8px 20px; border-radius: 50px; }
-        .loading, .no-results { text-align: center; padding: 80px 20px; font-size: 1.1rem; color: var(--gray); grid-column: 1 / -1; }
-        .loading i, .no-results i { font-size: 2.5rem; margin-bottom: 15px; color: var(--primary); }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--gray-light);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            animation: fadeInUp 0.5s ease backwards;
+            height: 100%;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+        .game-header {
+            position: relative;
+            height: 160px;
+            overflow: hidden;
+        }
+        .game-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            opacity: 0;
+        }
+        .game-image.loaded {
+            opacity: 1;
+        }
+        .game-card:hover .game-image {
+            transform: scale(1.05);
+        }
+        .game-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .favorite-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gray);
+            transition: var(--transition);
+            z-index: 5;
+        }
+        .favorite-btn.active {
+            color: var(--error);
+        }
+        .game-content {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .game-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+        .game-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--gray);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .play-btn {
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: auto;
+        }
+        .play-btn:hover {
+            background: var(--primary-dark);
+        }
 
-        footer { background: var(--footer-bg); color: white; padding: 3rem 5% 1.5rem; margin-top: 3rem; }
-        .footer-content { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
-        .social-links { display: flex; gap: 1rem; margin-top: 1rem; }
-        .social-link { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; }
-        .social-link:hover { background: var(--accent); transform: translateY(-2px); }
-        .footer-bottom { text-align: center; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); color: var(--gray-light); font-size: 0.9rem; }
-        .back-to-top { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); z-index: 99; opacity: 0; visibility: hidden; }
-        .back-to-top.show { opacity: 1; visibility: visible; }
-        .main-search-container { position: relative; width: 100%; max-width: 500px; margin-bottom: 1.5rem; }
-        .main-search-container input { width: 100%; padding: 14px 50px 14px 20px; border-radius: 50px; border: 1px solid var(--gray-light); font-size: 1rem; transition: all 0.3s ease; }
-        .main-search-container i { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--gray); }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 40px;
+            padding: 20px 0;
+        }
+        .page-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+        }
+        .page-btn:disabled {
+            background: var(--gray-light);
+            color: var(--gray);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .page-info {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            background: var(--gray-light);
+            padding: 8px 20px;
+            border-radius: 50px;
+        }
+        .loading, .no-results {
+            text-align: center;
+            padding: 80px 20px;
+            font-size: 1.1rem;
+            color: var(--gray);
+            grid-column: 1 / -1;
+        }
+        .loading i, .no-results i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
 
-        /* --- NOTIFICATION MODAL --- */
-        .notification-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .notification-modal.active { display: flex; }
-        .notification-container { width: 90%; max-width: 500px; max-height: 80vh; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; }
-        .notification-header { padding: 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
-        .back-notification-btn { background: rgba(255, 255, 255, 0.2); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .notification-list-modal { flex: 1; overflow-y: auto; max-height: calc(80vh - 80px); }
-        .notification-item-modal { padding: 15px 20px; border-bottom: 1px solid var(--gray-light); cursor: pointer; display: flex; align-items: flex-start; gap: 12px; }
-        .notification-item-modal.unread { background: var(--notification-bg); }
-        .mark-all-read-modal { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+        footer {
+            background: var(--footer-bg);
+            color: white;
+            padding: 3rem 5% 1.5rem;
+            margin-top: 3rem;
+        }
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .social-link {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: var(--transition);
+        }
+        .social-link:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray-light);
+            font-size: 0.9rem;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            z-index: 99;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .main-search-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 1.5rem;
+        }
+        .main-search-container input {
+            width: 100%;
+            padding: 14px 45px 14px 20px;
+            border-radius: 50px;
+            border: 1px solid var(--gray-light);
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--card-bg);
+            color: var(--dark);
+        }
+        .main-search-container .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            pointer-events: none;
+        }
+        .main-search-container .clear-search {
+            position: absolute;
+            right: 45px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 1rem;
+            display: none;
+        }
+        .main-search-container input:not(:placeholder-shown) ~ .clear-search {
+            display: block;
+        }
+        .clear-search:hover {
+            color: var(--primary);
+        }
 
-        /* --- FIXED ADMIN PANEL STYLES --- */
-        .admin-login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .admin-login-modal.active { opacity: 1; visibility: visible; }
-        .login-form { background: white; border-radius: 16px; padding: 30px; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-        .login-form h3 { margin-bottom: 20px; color: var(--primary); font-family: 'Poppins', sans-serif; text-align: center; }
-        .login-form input { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--gray-light); margin-bottom: 15px; }
-        .login-form button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; margin-top: 10px; font-weight: 600; }
+        /* notification modal (unchanged structure, minor styling) */
+        .notification-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .notification-modal.active {
+            display: flex;
+        }
+        .notification-container {
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        .notification-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .back-notification-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .notification-list-modal {
+            flex: 1;
+            overflow-y: auto;
+            max-height: calc(80vh - 80px);
+        }
+        .notification-item-modal {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray-light);
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+        .notification-item-modal.unread {
+            background: var(--notification-bg);
+        }
+        .mark-all-read-modal {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* admin panel (unchanged) */
+        .admin-login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .admin-login-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .login-form {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .login-form h3 {
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-light);
+            margin-bottom: 15px;
+            background: var(--card-bg);
+            color: var(--dark);
+        }
+        .login-form button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 600;
+        }
         
         .admin-panel { 
             position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; 
@@ -245,8 +1051,6 @@
             margin-bottom: 15px; font-weight: 600; transition: background 0.3s; 
         }
         .admin-btn-panel:hover { background: var(--primary-dark); }
-        
-        /* Specific Admin Buttons */
         .btn-green { background: var(--success); }
         .btn-green:hover { background: #00a884; }
         .btn-orange { background: var(--warning); color: #2d3436; }
@@ -254,45 +1058,25 @@
         .btn-red { background: var(--error); }
         .btn-red:hover { background: #d63031; }
 
-        /* Admin Lists */
-        .category-list { 
-            list-style: none; margin-top: 10px; max-height: 250px; overflow-y: auto; 
-            padding-right: 5px; 
-        }
+        .category-list { list-style: none; margin-top: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
         .category-list::-webkit-scrollbar { width: 4px; }
         .category-list::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
-        
         .notification-management { list-style: none; margin-top: 10px; }
-        .category-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); 
-            font-size: 0.95rem; 
-        }
+        .category-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.95rem; }
         .category-actions { display: flex; gap: 8px; }
         .edit-btn, .delete-btn { background: none; border: none; cursor: pointer; padding: 5px; opacity: 0.7; transition: opacity 0.2s; }
         .edit-btn { color: var(--accent); }
         .delete-btn { color: var(--error); }
         .edit-btn:hover, .delete-btn:hover { opacity: 1; transform: scale(1.1); }
         
-        /* Game Editor List */
         .game-category-editor { max-height: 400px; overflow-y: auto; padding-right: 5px; margin-top: 10px; }
         .game-category-editor::-webkit-scrollbar { width: 4px; }
         .game-category-editor::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
-        .game-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); 
-        }
+        .game-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .game-item span { font-size: 0.9rem; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .category-select { 
-            background: #151525; color: #ddd; border: 1px solid #444; 
-            padding: 5px 10px; border-radius: 4px; font-size: 0.85rem; outline: none; 
-        }
+        .category-select { background: #151525; color: #ddd; border: 1px solid #444; padding: 5px 10px; border-radius: 4px; font-size: 0.85rem; outline: none; }
         
-        /* Admin Notifications */
-        .notification-item-admin { 
-            padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 10px; 
-            display: flex; justify-content: space-between; align-items: flex-start; 
-        }
+        .notification-item-admin { padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
         .notification-content-admin { flex: 1; }
         .notification-title-admin { font-weight: 600; color: #fff; font-size: 0.95rem; }
         .notification-message-admin { font-size: 0.85rem; color: #ccc; margin-top: 2px; }
@@ -306,36 +1090,74 @@
         .analytics-number { font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-top: 5px; }
         .analytics-label { font-size: 0.75rem; opacity: 0.7; text-transform: uppercase; }
 
-        /* Remove auth related styles */
-        
-        /* Responsive adjustments for 3-column grid */
-        @media (max-width: 768px) {
-            .nav-container { flex-direction: column; gap: 1rem; }
-            .hero h2 { font-size: 2rem; }
-            .hero p { font-size: 1rem; }
-            .section-header { flex-direction: column; align-items: flex-start; }
-            .tabs { width: 100%; }
-            .iframe-container { height: 70vh; width: 95%; }
-            .admin-panel { width: 100%; right: -100%; }
-            .sidebar { width: 280px; left: -280px; }
-            /* Keep 3 columns even on mobile */
-            .games-container { grid-template-columns: repeat(3, 1fr); gap: 15px; }
-            .game-header { height: 130px; }
-            .game-content { padding: 0.8rem; }
-            .game-title { font-size: 0.95rem; }
+        /* custom confirm modal */
+        .confirm-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
         }
-        @media (max-width: 480px) {
-            .games-container { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-            .game-header { height: 90px; }
-            .game-content { padding: 0.5rem; }
-            .game-title { font-size: 0.75rem; }
-            .play-btn { padding: 0.4rem; font-size: 0.7rem; }
-            .game-badge { font-size: 0.6rem; padding: 2px 6px; }
+        .confirm-modal.active {
+            opacity: 1;
+            visibility: visible;
         }
+        .confirm-box {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        .confirm-box p {
+            margin: 15px 0 25px;
+            font-size: 1.1rem;
+        }
+        .confirm-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .confirm-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .confirm-yes {
+            background: var(--error);
+            color: white;
+        }
+        .confirm-no {
+            background: var(--gray-light);
+            color: var(--dark);
+        }
+        .confirm-yes:hover { filter: brightness(0.9); }
+        .confirm-no:hover { filter: brightness(0.9); }
     </style>
 </head>
 <body>
-    <!-- Sidebar for hamburger menu -->
+    <!-- custom confirm modal -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-box">
+            <i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; color: var(--warning);"></i>
+            <p id="confirmMessage">Are you sure?</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn confirm-yes" id="confirmYes">Yes</button>
+                <button class="confirm-btn confirm-no" id="confirmNo">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
         <div class="ad-container" style="margin: 10px 0; padding: 0;">
@@ -355,24 +1177,22 @@
         </div>
         <div class="sidebar-section">
             <h3>Categories</h3>
-            <ul class="sidebar-links" id="sidebarCategories">
-                <!-- Categories will be populated dynamically -->
-            </ul>
+            <ul class="sidebar-links" id="sidebarCategories"></ul>
         </div>
     </div>
 
-    <!-- Game Player Modal (Popup) -->
+    <!-- Game Modal -->
     <div id="gameModal" class="game-modal">
         <div class="modal-header">
             <div class="modal-title" id="modalGameTitle">Playing Game</div>
-            <button class="close-game-btn" onclick="closeGameModal()">
-                <i class="fas fa-times"></i> Close Game
-            </button>
+            <div class="modal-actions">
+                <button class="fullscreen-btn" id="fullscreenGameBtn" title="Fullscreen (f)"><i class="fas fa-expand"></i> Fullscreen</button>
+                <button class="close-game-btn" onclick="closeGameModal()" title="Close (ESC)"><i class="fas fa-times"></i> Close</button>
+            </div>
         </div>
         <div class="iframe-container">
             <iframe id="gameFrame" src="" frameborder="0" allowfullscreen></iframe>
         </div>
-        
         <div class="ad-container">
             <div class="ad-box ad-modal">
                 <span>Sponsored Ad (728x90)</span>
@@ -385,21 +1205,17 @@
         <div class="notification-container">
             <div class="notification-header">
                 <h2>Notifications</h2>
-                <button class="back-notification-btn" id="backNotificationBtn">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
+                <button class="back-notification-btn" id="backNotificationBtn" aria-label="Close notifications"><i class="fas fa-arrow-left"></i></button>
             </div>
-            <div class="notification-list-modal" id="notificationListModal">
-                <!-- Notifications added here -->
-            </div>
+            <div class="notification-list-modal" id="notificationListModal"></div>
             <div style="padding: 15px; text-align: center; border-top: 1px solid var(--gray-light);">
                 <button class="mark-all-read-modal" id="markAllReadModal">Mark All as Read</button>
             </div>
         </div>
     </div>
 
-    <!-- Notification Toast -->
-    <div id="toast" class="toast">
+    <!-- Toast -->
+    <div id="toast" class="toast" role="status" aria-live="polite">
         <i class="fas fa-check-circle"></i>
         <span id="toastMessage">Notification</span>
     </div>
@@ -408,100 +1224,72 @@
     <div class="admin-login-modal" id="adminLoginModal">
         <div class="login-form">
             <h3>Admin Login</h3>
-            <input type="password" id="adminPassword" placeholder="Enter admin password">
+            <input type="password" id="adminPassword" placeholder="Enter admin password" aria-label="Admin password">
             <button id="adminLoginBtn">Login</button>
             <button id="closeLoginModal" style="background: var(--gray);">Cancel</button>
         </div>
     </div>
 
-    <!-- UPDATED ADMIN PANEL HTML -->
+    <!-- Admin Panel -->
     <div class="admin-panel" id="adminPanel">
         <div class="admin-header">
             <h2><i class="fas fa-cogs"></i> Dashboard</h2>
-            <button class="close-admin" id="closeAdminPanel">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="close-admin" id="closeAdminPanel" aria-label="Close admin panel"><i class="fas fa-times"></i></button>
         </div>
         <div class="admin-content">
             <div id="adminAnalyticsPlaceholder"></div>
-
             <div class="admin-section">
                 <h3><i class="fas fa-bullhorn"></i> Broadcast</h3>
                 <input type="text" class="admin-input" id="notificationTitle" placeholder="Title (e.g., New Games!)">
                 <textarea class="admin-input" id="notificationMessage" placeholder="Message content..." rows="3"></textarea>
-                <button class="admin-btn-panel" id="sendNotificationBtn">
-                    <i class="fas fa-paper-plane"></i> Send Notification
-                </button>
+                <button class="admin-btn-panel" id="sendNotificationBtn"><i class="fas fa-paper-plane"></i> Send Notification</button>
             </div>
-
-            <!-- History Section Moved Here -->
             <div class="admin-section">
                 <h3><i class="fas fa-history"></i> History</h3>
                 <div class="notification-management" id="notificationManagement"></div>
             </div>
-            
             <div class="admin-section">
                 <h3><i class="fas fa-list-ul"></i> Manage Categories</h3>
                 <div style="display: flex; gap: 5px;">
                     <input type="text" class="admin-input" id="newCategoryName" placeholder="New Category Name" style="margin-bottom: 0;">
-                    <button class="admin-btn-panel" id="addCategoryBtn" style="width: auto; margin-bottom: 0;">
-                        <i class="fas fa-plus"></i>
-                    </button>
+                    <button class="admin-btn-panel" id="addCategoryBtn" style="width: auto; margin-bottom: 0;"><i class="fas fa-plus"></i></button>
                 </div>
-                <!-- Categories list now has scroll -->
                 <ul class="category-list" id="categoryList"></ul>
             </div>
-            
             <div class="admin-section">
                 <h3><i class="fas fa-gamepad"></i> Game Assignment</h3>
-                <!-- Search bar added below line -->
                 <input type="text" class="admin-input" id="gameAssignmentSearch" placeholder="Search game to categorize..." style="margin-bottom: 5px;">
-                <div class="game-category-editor" id="gameCategoryEditor">
-                    <!-- Populated by JS -->
-                </div>
+                <div class="game-category-editor" id="gameCategoryEditor"></div>
             </div>
-            
             <div class="admin-section">
                 <h3><i class="fas fa-sliders-h"></i> System Actions</h3>
-                <button class="admin-btn-panel btn-green" id="saveChangesBtn">
-                    <i class="fas fa-save"></i> Save All Changes
-                </button>
-                <button class="admin-btn-panel btn-orange" id="resetCategoriesBtn">
-                    <i class="fas fa-undo"></i> Reset Defaults
-                </button>
-                <button class="admin-btn-panel btn-red" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Logout Admin
-                </button>
+                <button class="admin-btn-panel btn-green" id="saveChangesBtn"><i class="fas fa-save"></i> Save All Changes</button>
+                <button class="admin-btn-panel btn-orange" id="resetCategoriesBtn"><i class="fas fa-undo"></i> Reset Defaults</button>
+                <button class="admin-btn-panel btn-red" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout Admin</button>
             </div>
         </div>
     </div>
 
-    <!-- HEADER NAVIGATION -->
+    <!-- Header -->
     <header>
         <div class="nav-container">
             <div class="brand">
-                <div class="hamburger-menu" id="hamburgerMenu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                <div class="hamburger-menu" id="hamburgerMenu" aria-label="Menu" role="button" tabindex="0">
+                    <span></span><span></span><span></span>
                 </div>
-                <div class="logo">
-                    <i class="fas fa-dice-d20"></i>
-                </div>
+                <div class="logo"><i class="fas fa-dice-d20"></i></div>
                 <div class="brand-text">
                     <h1>GamesbyDD</h1>
                     <div class="tagline">Play Free Online Games - No Downloads</div>
                 </div>
             </div>
             <div class="header-actions">
-                <div class="notification-bell" id="notificationBell">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode"><i class="fas fa-moon"></i></button>
+                <div class="notification-bell" id="notificationBell" role="button" tabindex="0" aria-label="Notifications">
                     <i class="fas fa-bell"></i>
                     <div class="notification-badge" id="notificationBadge" style="display: none;">0</div>
                 </div>
-                
-                <!-- USER ICON REMOVED -->
-                
-                <div class="admin-btn" id="adminBtn">
+                <div class="admin-btn" id="adminBtn" role="button" tabindex="0" aria-label="Admin">
                     <i class="fas fa-user-shield"></i>
                 </div>
             </div>
@@ -509,16 +1297,13 @@
     </header>
 
     <div class="ad-container">
-        <div class="ad-box ad-leaderboard">
-            <span>Advertisement (Leaderboard 970x90)</span>
-        </div>
+        <div class="ad-box ad-leaderboard"><span>Advertisement (Leaderboard 970x90)</span></div>
     </div>
 
     <section class="hero">
         <div class="hero-content">
             <h2>Play Free Online Games Instantly</h2>
             <p>No downloads, no installations. Just click and play in your browser. Curated collection of the best browser games.</p>
-            
             <div class="hero-features">
                 <div class="feature"><i class="fas fa-check-circle"></i><span>100% Free</span></div>
                 <div class="feature"><i class="fas fa-check-circle"></i><span>No Downloads</span></div>
@@ -534,46 +1319,36 @@
                 <h2 class="section-title">Game Collection</h2>
                 <div class="main-search-container">
                     <input type="text" id="searchInput" placeholder="Search for games...">
-                    <i class="fas fa-search"></i>
+                    <i class="fas fa-search search-icon"></i>
+                    <button class="clear-search" id="clearSearch" aria-label="Clear search"><i class="fas fa-times-circle"></i></button>
                 </div>
                 <div class="tabs">
                     <div class="tab active" onclick="switchTab('all')">All Games</div>
-                    <div class="tab" onclick="switchTab('fav')">
-                        Favorites <span class="badge" id="favTabCount">0</span>
-                    </div>
-                    <div class="tab" onclick="switchTab('recent')">
-                        Recent Play <span class="badge" id="recentTabCount">0</span>
-                    </div>
+                    <div class="tab" onclick="switchTab('fav')">Favorites <span class="badge" id="favTabCount">0</span></div>
+                    <div class="tab" onclick="switchTab('recent')">Recent Play <span class="badge" id="recentTabCount">0</span></div>
                 </div>
             </div>
 
             <div class="filters" id="categoryFilters"></div>
 
             <div class="ad-container">
-                <div class="ad-box ad-content">
-                    <span>Advertisement (Banner 728x90)</span>
-                </div>
+                <div class="ad-box ad-content"><span>Advertisement (Banner 728x90)</span></div>
             </div>
 
             <div class="games-container" id="gamesContainer">
-                <div class="loading">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Loading amazing games...</p>
-                </div>
+                <div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading amazing games...</p></div>
             </div>
 
             <div class="pagination" id="paginationControls">
-                <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
+                <button class="page-btn" id="prevPageBtn" disabled aria-label="Previous page"><i class="fas fa-chevron-left"></i></button>
                 <div class="page-info" id="pageInfo">Page 1 of 1</div>
-                <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
+                <button class="page-btn" id="nextPageBtn" disabled aria-label="Next page"><i class="fas fa-chevron-right"></i></button>
             </div>
         </div>
     </main>
 
     <div class="ad-container">
-        <div class="ad-box ad-leaderboard">
-            <span>Advertisement (Leaderboard 970x90)</span>
-        </div>
+        <div class="ad-box ad-leaderboard"><span>Advertisement (Leaderboard 970x90)</span></div>
     </div>
 
     <footer>
@@ -582,8 +1357,8 @@
                 <h4>GamesbyDD</h4>
                 <p>Your destination for free online games. Play instantly in your browser with no downloads required.</p>
                 <div class="social-links">
-                    <a href="https://www.instagram.com/_ffgamer2dd?igsh=MW1ndG5hN3dqOXVvZw==" class="social-link" target="_blank"><i class="fab fa-instagram"></i></a>
-                    <a href="https://youtube.com/@ffgamer2ddyt?si=Fj7Zi0B0MSY8-5cz" class="social-link" target="_blank"><i class="fab fa-youtube"></i></a>
+                    <a href="https://www.instagram.com/_ffgamer2dd?igsh=MW1ndG5hN3dqOXVvZw==" class="social-link" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://youtube.com/@ffgamer2ddyt?si=Fj7Zi0B0MSY8-5cz" class="social-link" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
                 </div>
             </div>
         </div>
@@ -592,40 +1367,41 @@
         </div>
     </footer>
 
-    <div class="back-to-top" id="backToTop">
-        <i class="fas fa-arrow-up"></i>
-    </div>
+    <div class="back-to-top" id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></div>
 
     <script>
+        (function() {
+            // Immediately set dark mode if previously enabled
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark');
+                const themeIcon = document.querySelector('#themeToggle i');
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+            }
+        })();
+
         document.addEventListener('DOMContentLoaded', async function() {
-            // Core elements
+            // DOM elements
             const gamesContainer = document.getElementById('gamesContainer');
             const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
             const favTabCount = document.getElementById('favTabCount');
             const recentTabCount = document.getElementById('recentTabCount');
             const backToTop = document.getElementById('backToTop');
             const categoryFilters = document.getElementById('categoryFilters');
-            
-            // Pagination elements
             const paginationControls = document.getElementById('paginationControls');
             const prevPageBtn = document.getElementById('prevPageBtn');
             const nextPageBtn = document.getElementById('nextPageBtn');
             const pageInfo = document.getElementById('pageInfo');
-            
-            // Modal Elements
             const gameModal = document.getElementById('gameModal');
             const gameFrame = document.getElementById('gameFrame');
             const modalGameTitle = document.getElementById('modalGameTitle');
-            
-            // Notification Elements
+            const fullscreenBtn = document.getElementById('fullscreenGameBtn');
             const notificationModal = document.getElementById('notificationModal');
             const notificationBell = document.getElementById('notificationBell');
             const notificationBadge = document.getElementById('notificationBadge');
             const notificationListModal = document.getElementById('notificationListModal');
             const backNotificationBtn = document.getElementById('backNotificationBtn');
             const markAllReadModal = document.getElementById('markAllReadModal');
-            
-            // Admin elements
             const adminBtn = document.getElementById('adminBtn');
             const adminLoginModal = document.getElementById('adminLoginModal');
             const adminPassword = document.getElementById('adminPassword');
@@ -640,47 +1416,75 @@
             const saveChangesBtn = document.getElementById('saveChangesBtn');
             const resetCategoriesBtn = document.getElementById('resetCategoriesBtn');
             const logoutBtn = document.getElementById('logoutBtn');
-            
-            // Notification Admin Elements
             const notificationTitle = document.getElementById('notificationTitle');
             const notificationMessage = document.getElementById('notificationMessage');
             const sendNotificationBtn = document.getElementById('sendNotificationBtn');
             const notificationManagement = document.getElementById('notificationManagement');
             const gameAssignmentSearch = document.getElementById('gameAssignmentSearch');
-            
-            // Hamburger Menu Elements
             const hamburgerMenu = document.getElementById('hamburgerMenu');
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             const sidebarCategories = document.getElementById('sidebarCategories');
-            
+            const themeToggle = document.getElementById('themeToggle');
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmMessage = document.getElementById('confirmMessage');
+            const confirmYes = document.getElementById('confirmYes');
+            const confirmNo = document.getElementById('confirmNo');
+
+            // State
             let toastTimeout;
             let searchTimeout;
-            
-            // State
-            let currentView = 'all'; 
+            let currentView = 'all';
             let currentCategory = 'All';
             let allGamesData = [];
             let favorites = JSON.parse(localStorage.getItem('myGameFavorites')) || [];
             let recentGames = JSON.parse(sessionStorage.getItem('myRecentGames')) || [];
-            
-            let categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing']; 
-            let gameCategories = {}; 
+            let categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing'];
+            let gameCategories = {};
             let isAdmin = localStorage.getItem('gamesbydd_admin') === 'true';
             let unsubscribeFromFirestore = null;
             let unsubscribeFromNotifications = null;
             let notifications = [];
             let unreadCount = 0;
             let currentPage = 1;
-            const gamesPerPage = 9; // Changed to 9 for perfect 3x3 rows per page
-            
-            // Analytics State
+            const gamesPerPage = 9; // 3x3
             let siteVisits = 0;
+            let confirmResolver = null;
 
-            // =============================================
-            // EXISTING GAME LOGIC (Auth completely removed)
-            // =============================================
-            
+            // ========== Helper Functions ==========
+            function showConfirm(message) {
+                return new Promise((resolve) => {
+                    confirmMessage.textContent = message;
+                    confirmModal.classList.add('active');
+                    confirmResolver = (answer) => {
+                        confirmModal.classList.remove('active');
+                        resolve(answer);
+                    };
+                });
+            }
+
+            confirmYes.addEventListener('click', () => {
+                if (confirmResolver) confirmResolver(true);
+            });
+            confirmNo.addEventListener('click', () => {
+                if (confirmResolver) confirmResolver(false);
+            });
+            confirmModal.addEventListener('click', (e) => {
+                if (e.target === confirmModal) {
+                    if (confirmResolver) confirmResolver(false);
+                }
+            });
+
+            // Theme toggle
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+                const isDark = document.body.classList.contains('dark');
+                localStorage.setItem('darkMode', isDark);
+                const icon = themeToggle.querySelector('i');
+                icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            });
+
+            // Firebase
             const gameStats = {
                 fetchVisits: async function() {
                     if (!window.firebaseDb) return;
@@ -688,9 +1492,7 @@
                     try {
                         const docRef = doc(window.firebaseDb, 'settings', 'analytics');
                         const docSnap = await getDoc(docRef);
-                        if (docSnap.exists()) {
-                            siteVisits = docSnap.data().totalUniqueVisitors || 0;
-                        }
+                        if (docSnap.exists()) siteVisits = docSnap.data().totalUniqueVisitors || 0;
                     } catch (e) { console.error("Error fetching visits", e); }
                 }
             };
@@ -707,23 +1509,19 @@
             async function incrementSiteVisits() {
                 if (!window.firebaseDb) return;
                 if (sessionStorage.getItem('visit_counted')) return;
-
                 const { doc, setDoc, increment } = window.firebaseMethods;
                 try {
                     const analyticsRef = doc(window.firebaseDb, 'settings', 'analytics');
                     await setDoc(analyticsRef, { totalUniqueVisitors: increment(1) }, { merge: true });
                     sessionStorage.setItem('visit_counted', 'true');
-                } catch (error) {
-                    console.error("Could not increment visits", error);
-                }
+                } catch (error) { console.error("Could not increment visits", error); }
             }
 
             async function loadFromFirestore() {
                 if (!window.firebaseDb) return false;
                 const { getDoc, doc } = window.firebaseMethods;
-                const db = window.firebaseDb;
                 try {
-                    const docRef = doc(db, 'settings', 'categories');
+                    const docRef = doc(window.firebaseDb, 'settings', 'categories');
                     const docSnap = await getDoc(docRef);
                     if (docSnap.exists()) {
                         const data = docSnap.data();
@@ -746,14 +1544,13 @@
 
             async function saveToFirestore() {
                 if (!window.firebaseDb) {
-                     localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
-                     localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
-                     return false;
+                    localStorage.setItem('gamesbydd_categories', JSON.stringify(categories));
+                    localStorage.setItem('gamesbydd_game_categories', JSON.stringify(gameCategories));
+                    return false;
                 }
                 const { setDoc, doc } = window.firebaseMethods;
-                const db = window.firebaseDb;
                 try {
-                    await setDoc(doc(db, 'settings', 'categories'), {
+                    await setDoc(doc(window.firebaseDb, 'settings', 'categories'), {
                         categories: categories,
                         gameCategories: gameCategories,
                         lastUpdated: new Date()
@@ -765,9 +1562,8 @@
             function setupFirestoreListener() {
                 if (!window.firebaseDb) return;
                 const { onSnapshot, doc } = window.firebaseMethods;
-                const db = window.firebaseDb;
                 if (unsubscribeFromFirestore) unsubscribeFromFirestore();
-                const docRef = doc(db, 'settings', 'categories');
+                const docRef = doc(window.firebaseDb, 'settings', 'categories');
                 unsubscribeFromFirestore = onSnapshot(docRef, (doc) => {
                     if (doc.exists()) {
                         const data = doc.data();
@@ -786,16 +1582,14 @@
             function setupNotificationsListener() {
                 if (!window.firebaseDb) return;
                 const { onSnapshot, collection, query, orderBy } = window.firebaseMethods;
-                const db = window.firebaseDb;
                 if (unsubscribeFromNotifications) unsubscribeFromNotifications();
-                const notificationsRef = collection(db, 'notifications');
+                const notificationsRef = collection(window.firebaseDb, 'notifications');
                 const q = query(notificationsRef, orderBy('timestamp', 'desc'));
                 unsubscribeFromNotifications = onSnapshot(q, (querySnapshot) => {
                     notifications = [];
                     unreadCount = 0;
                     querySnapshot.forEach((doc) => {
-                        const notification = { id: doc.id, ...doc.data() };
-                        notifications.push(notification);
+                        notifications.push({ id: doc.id, ...doc.data() });
                         const readNotifications = JSON.parse(localStorage.getItem('gamesbydd_read_notifications') || '[]');
                         if (!readNotifications.includes(doc.id)) unreadCount++;
                     });
@@ -809,12 +1603,11 @@
                 if (!window.firebaseDb) { showToast('Database not connected', 'removed'); return; }
                 if (!title || !message) { showToast('Please fill in both title and message', 'removed'); return; }
                 const { addDoc, collection, serverTimestamp } = window.firebaseMethods;
-                const db = window.firebaseDb;
                 try {
-                    await addDoc(collection(db, 'notifications'), {
-                        title: title, message: message, type: type, timestamp: serverTimestamp(), sentBy: 'Admin'
+                    await addDoc(collection(window.firebaseDb, 'notifications'), {
+                        title, message, type, timestamp: serverTimestamp(), sentBy: 'Admin'
                     });
-                    showToast('Notification sent to all users!', 'added');
+                    showToast('Notification sent!', 'added');
                     notificationTitle.value = ''; notificationMessage.value = '';
                 } catch (error) { showToast('Failed to send notification', 'removed'); }
             }
@@ -822,10 +1615,9 @@
             async function deleteNotification(notificationId) {
                 if (!window.firebaseDb) return;
                 const { deleteDoc, doc } = window.firebaseMethods;
-                const db = window.firebaseDb;
                 try {
-                    await deleteDoc(doc(db, 'notifications', notificationId));
-                    showToast('Notification deleted successfully!', 'added');
+                    await deleteDoc(doc(window.firebaseDb, 'notifications', notificationId));
+                    showToast('Notification deleted!', 'added');
                 } catch (error) { showToast('Failed to delete notification', 'removed'); }
             }
 
@@ -836,10 +1628,10 @@
                     localStorage.setItem('gamesbydd_read_notifications', JSON.stringify(readNotifications));
                     unreadCount = Math.max(0, unreadCount - 1);
                     updateNotificationBadge();
-                    const notificationItem = document.querySelector(`.notification-item-modal[data-id="${notificationId}"]`);
-                    if (notificationItem) {
-                        notificationItem.classList.remove('unread');
-                        const dot = notificationItem.querySelector('.notification-dot-modal');
+                    const item = document.querySelector(`.notification-item-modal[data-id="${notificationId}"]`);
+                    if (item) {
+                        item.classList.remove('unread');
+                        const dot = item.querySelector('.notification-dot-modal');
                         if (dot) dot.style.display = 'none';
                     }
                 }
@@ -847,14 +1639,12 @@
 
             function markAllNotificationsAsRead() {
                 const readNotifications = JSON.parse(localStorage.getItem('gamesbydd_read_notifications') || '[]');
-                notifications.forEach(notification => {
-                    if (!readNotifications.includes(notification.id)) readNotifications.push(notification.id);
-                });
+                notifications.forEach(n => { if (!readNotifications.includes(n.id)) readNotifications.push(n.id); });
                 localStorage.setItem('gamesbydd_read_notifications', JSON.stringify(readNotifications));
                 unreadCount = 0;
                 updateNotificationBadge();
                 renderNotifications();
-                showToast('All notifications marked as read', 'added');
+                showToast('All marked as read', 'added');
             }
 
             function updateNotificationBadge() {
@@ -870,57 +1660,58 @@
                     return;
                 }
                 const readNotifications = JSON.parse(localStorage.getItem('gamesbydd_read_notifications') || '[]');
-                let notificationsHTML = '';
-                notifications.forEach(notification => {
-                    const isUnread = !readNotifications.includes(notification.id);
-                    const timeAgo = getTimeAgo(notification.timestamp?.toDate() || new Date());
-                    const dateString = getFormattedDate(notification.timestamp?.toDate() || new Date());
-                    const iconClass = getNotificationIcon(notification.type);
-                    notificationsHTML += `
-                        <div class="notification-item-modal ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
+                let html = '';
+                notifications.forEach(n => {
+                    const isUnread = !readNotifications.includes(n.id);
+                    const timeAgo = getTimeAgo(n.timestamp?.toDate() || new Date());
+                    const dateStr = getFormattedDate(n.timestamp?.toDate() || new Date());
+                    const iconClass = getNotificationIcon(n.type);
+                    html += `
+                        <div class="notification-item-modal ${isUnread ? 'unread' : ''}" data-id="${n.id}">
                             <div class="notification-icon-modal"><i class="${iconClass}"></i></div>
                             <div class="notification-content-modal">
-                                <div class="notification-title-modal">${notification.title || 'Notification'}</div>
-                                <div class="notification-message-modal">${notification.message || ''}</div>
-                                <div class="notification-time-modal"><span class="notification-date">${dateString}</span><span>${timeAgo}</span></div>
+                                <div class="notification-title-modal">${n.title || 'Notification'}</div>
+                                <div class="notification-message-modal">${n.message || ''}</div>
+                                <div class="notification-time-modal"><span class="notification-date">${dateStr}</span> <span>${timeAgo}</span></div>
                             </div>
                             ${isUnread ? '<div class="notification-dot-modal"></div>' : ''}
                         </div>
                     `;
                 });
-                notificationListModal.innerHTML = notificationsHTML;
+                notificationListModal.innerHTML = html;
                 document.querySelectorAll('.notification-item-modal').forEach(item => {
-                    item.addEventListener('click', function() { markNotificationAsRead(this.getAttribute('data-id')); });
+                    item.addEventListener('click', function() { markNotificationAsRead(this.dataset.id); });
                 });
             }
 
             function updateNotificationManagement() {
                 if (notifications.length === 0) {
-                    notificationManagement.innerHTML = `<p style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">No notifications history</p>`;
+                    notificationManagement.innerHTML = '<p style="text-align:center; padding:20px; color:rgba(255,255,255,0.7);">No notifications history</p>';
                     return;
                 }
-                let managementHTML = '';
-                notifications.forEach(notification => {
-                    const timeAgo = getTimeAgo(notification.timestamp?.toDate() || new Date());
-                    const dateString = getFormattedDate(notification.timestamp?.toDate() || new Date());
-                    managementHTML += `
+                let html = '';
+                notifications.forEach(n => {
+                    const timeAgo = getTimeAgo(n.timestamp?.toDate() || new Date());
+                    const dateStr = getFormattedDate(n.timestamp?.toDate() || new Date());
+                    html += `
                         <div class="notification-item-admin">
                             <div class="notification-content-admin">
-                                <div class="notification-title-admin">${notification.title || 'Notification'}</div>
-                                <div class="notification-message-admin">${notification.message || ''}</div>
-                                <div class="notification-meta-admin"><span>${dateString}</span> • <span>${timeAgo}</span></div>
+                                <div class="notification-title-admin">${n.title || 'Notification'}</div>
+                                <div class="notification-message-admin">${n.message || ''}</div>
+                                <div class="notification-meta-admin">${dateStr} • ${timeAgo}</div>
                             </div>
                             <div class="notification-actions-admin">
-                                <button class="delete-notification-btn" data-id="${notification.id}"><i class="fas fa-trash"></i></button>
+                                <button class="delete-notification-btn" data-id="${n.id}"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
                     `;
                 });
-                notificationManagement.innerHTML = managementHTML;
+                notificationManagement.innerHTML = html;
                 document.querySelectorAll('.delete-notification-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const notificationId = this.getAttribute('data-id');
-                        if (confirm('Are you sure you want to delete this notification?')) deleteNotification(notificationId);
+                    btn.addEventListener('click', async function() {
+                        const id = this.dataset.id;
+                        const confirmed = await showConfirm('Delete this notification?');
+                        if (confirmed) deleteNotification(id);
                     });
                 });
             }
@@ -949,17 +1740,16 @@
             }
 
             function getFormattedDate(date) {
-                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                return date.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
             }
 
             async function init() {
                 await waitForFirebase();
-                incrementSiteVisits(); 
+                incrementSiteVisits();
                 await loadGamesWithCache();
-                
                 setupFirestoreListener();
                 setupNotificationsListener();
-                updateCounts(); 
+                updateCounts();
                 updateCategories();
                 if (isAdmin) adminBtn.style.display = 'flex';
             }
@@ -973,6 +1763,20 @@
                 }));
             }
 
+            function showSkeletonLoading() {
+                let skeletonHTML = '';
+                for (let i = 0; i < 9; i++) {
+                    skeletonHTML += `
+                        <div class="skeleton-card">
+                            <div class="skeleton-img"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line short"></div>
+                        </div>
+                    `;
+                }
+                gamesContainer.innerHTML = skeletonHTML;
+            }
+
             async function loadGamesWithCache() {
                 const cached = localStorage.getItem('cachedGames');
                 if (cached) {
@@ -982,11 +1786,12 @@
                         categories = parsed.categories;
                         gameCategories = parsed.gameCategories;
                         renderCurrentView();
+                    } else {
+                        showSkeletonLoading();
                     }
+                } else {
+                    showSkeletonLoading();
                 }
-                
-                if (allGamesData.length === 0) showSkeletonLoading();
-
                 await loadGames();
                 cacheGameData();
             }
@@ -1002,13 +1807,9 @@
                     renderCurrentView();
                 } catch (error) {
                     if (allGamesData.length === 0) {
-                        gamesContainer.innerHTML = `<div class="no-results"><i class="fas fa-exclamation-triangle"></i><p>Failed to load games. Check connection.</p></div>`;
+                        gamesContainer.innerHTML = `<div class="no-results"><i class="fas fa-exclamation-triangle"></i><p>Failed to load games. <button onclick="loadGames()" style="background:none;border:1px solid var(--primary);padding:5px 10px;border-radius:20px;cursor:pointer;">Retry</button></p></div>`;
                     }
                 }
-            }
-            
-            function showSkeletonLoading() {
-                gamesContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>';
             }
 
             function parseCSV(csvText) {
@@ -1041,14 +1842,14 @@
 
             function openSidebar() {
                 sidebar.classList.add('active');
-                hamburgerMenu.classList.add('active'); 
+                hamburgerMenu.classList.add('active');
                 sidebarOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
 
             function closeSidebar() {
                 sidebar.classList.remove('active');
-                hamburgerMenu.classList.remove('active'); 
+                hamburgerMenu.classList.remove('active');
                 sidebarOverlay.classList.remove('active');
                 document.body.style.overflow = 'auto';
             }
@@ -1081,12 +1882,25 @@
                 if(e.target === gameModal) closeGameModal();
             });
 
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && gameModal.classList.contains('active')) closeGameModal();
+                if (e.key === 'f' && gameModal.classList.contains('active')) toggleFullscreen();
+            });
+
+            function toggleFullscreen() {
+                const iframe = gameFrame;
+                if (iframe.requestFullscreen) iframe.requestFullscreen();
+                else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+                else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
+            }
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+
             function showToast(message, type) {
                 const toast = document.getElementById('toast');
                 const toastMessage = document.getElementById('toastMessage');
                 toastMessage.textContent = message;
                 toast.className = 'toast show';
-                toast.classList.add(type); 
+                toast.classList.add(type);
                 const icon = toast.querySelector('i');
                 if(type === 'added') {
                     icon.className = 'fas fa-check-circle';
@@ -1103,12 +1917,10 @@
                 currentView = view;
                 currentPage = 1;
                 document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-                
                 const tabs = document.querySelectorAll('.tab');
                 if(view === 'all') tabs[0].classList.add('active');
                 else if(view === 'fav') tabs[1].classList.add('active');
                 else if(view === 'recent') tabs[2].classList.add('active');
-
                 categoryFilters.style.display = view === 'all' ? 'flex' : 'none';
                 renderCurrentView();
             };
@@ -1118,35 +1930,33 @@
                 const searchTerm = searchInput.value.toLowerCase();
 
                 if (currentView === 'all') {
-                    if (currentCategory === 'All') gamesToRender = allGamesData;
-                    else gamesToRender = allGamesData.filter(g => gameCategories[g.id] === currentCategory);
+                    gamesToRender = currentCategory === 'All' ? allGamesData : allGamesData.filter(g => gameCategories[g.id] === currentCategory);
                 } else if (currentView === 'fav') {
                     gamesToRender = favorites;
-                } else if (currentView === 'recent') {
+                } else {
                     gamesToRender = recentGames;
                 }
 
                 if (searchTerm) {
-                    gamesToRender = gamesToRender.filter(game => game.name.toLowerCase().includes(searchTerm));
+                    gamesToRender = gamesToRender.filter(g => g.name.toLowerCase().includes(searchTerm));
                 }
                 
                 const totalPages = Math.ceil(gamesToRender.length / gamesPerPage);
-                const startIndex = (currentPage - 1) * gamesPerPage;
-                const endIndex = startIndex + gamesPerPage;
-                const paginatedGames = gamesToRender.slice(startIndex, endIndex);
+                const start = (currentPage - 1) * gamesPerPage;
+                const end = start + gamesPerPage;
+                const paginated = gamesToRender.slice(start, end);
                 
                 updatePaginationControls(totalPages);
                 
-                if (paginatedGames.length === 0) {
+                if (paginated.length === 0) {
                     let msg = "No games found.";
                     if(currentView === 'fav' && !searchTerm) msg = "No favorite games yet.";
                     if(currentView === 'recent' && !searchTerm) msg = "No games played recently in this session.";
-                    
                     gamesContainer.innerHTML = `<div class="no-results"><i class="fas ${currentView === 'all' ? 'fa-search' : 'fa-ghost'}"></i><p>${msg}</p></div>`;
                     return;
                 }
 
-                gamesContainer.innerHTML = paginatedGames.map(game => createGameCard(game)).join('');
+                gamesContainer.innerHTML = paginated.map(game => createGameCard(game)).join('');
             }
 
             function updatePaginationControls(totalPages) {
@@ -1185,8 +1995,7 @@
 
             window.toggleFavorite = function(event, id, btnElement) {
                 event.stopPropagation();
-                let game = allGamesData.find(g => g.id === id);
-                if (!game) game = favorites.find(f => f.id === id) || recentGames.find(r => r.id === id);
+                let game = allGamesData.find(g => g.id === id) || favorites.find(f => f.id === id) || recentGames.find(r => r.id === id);
                 if (!game) return;
 
                 const index = favorites.findIndex(f => f.id === id);
@@ -1213,36 +2022,36 @@
 
             function updateCategories() {
                 categoryFilters.innerHTML = '';
-                const allButton = document.createElement('div');
-                allButton.className = 'filter active';
-                allButton.setAttribute('data-category', 'All');
-                allButton.textContent = 'All Games';
-                allButton.addEventListener('click', filterHandler);
-                categoryFilters.appendChild(allButton);
+                const allBtn = document.createElement('div');
+                allBtn.className = 'filter active';
+                allBtn.dataset.category = 'All';
+                allBtn.textContent = 'All Games';
+                allBtn.addEventListener('click', filterHandler);
+                categoryFilters.appendChild(allBtn);
                 
-                categories.forEach(category => {
-                    const button = document.createElement('div');
-                    button.className = 'filter';
-                    button.setAttribute('data-category', category);
-                    button.textContent = category;
-                    button.addEventListener('click', filterHandler);
-                    categoryFilters.appendChild(button);
+                categories.forEach(cat => {
+                    const btn = document.createElement('div');
+                    btn.className = 'filter';
+                    btn.dataset.category = cat;
+                    btn.textContent = cat;
+                    btn.addEventListener('click', filterHandler);
+                    categoryFilters.appendChild(btn);
                 });
                 
                 sidebarCategories.innerHTML = '';
-                categories.forEach(category => {
+                categories.forEach(cat => {
                     const li = document.createElement('li');
                     const a = document.createElement('a');
                     a.href = '#';
-                    a.setAttribute('data-category', category);
-                    a.innerHTML = `<i class="fas fa-angle-right"></i> ${category}`;
-                    a.addEventListener('click', function(e) {
+                    a.dataset.category = cat;
+                    a.innerHTML = `<i class="fas fa-angle-right"></i> ${cat}`;
+                    a.addEventListener('click', (e) => {
                         e.preventDefault();
-                        const filterBtn = document.querySelector(`.filter[data-category="${category}"]`);
-                        if (filterBtn) {
-                            filterBtn.click();
+                        const filter = document.querySelector(`.filter[data-category="${cat}"]`);
+                        if (filter) {
+                            filter.click();
                             closeSidebar();
-                            setTimeout(() => { document.querySelector('.filters').scrollIntoView({ behavior: 'smooth' }); }, 300);
+                            setTimeout(() => document.querySelector('.filters').scrollIntoView({ behavior: 'smooth' }), 300);
                         }
                     });
                     li.appendChild(a);
@@ -1253,137 +2062,147 @@
             
             function updateAdminCategoryList() {
                 categoryList.innerHTML = '';
-                categories.forEach(category => {
+                categories.forEach(cat => {
                     const li = document.createElement('li');
                     li.className = 'category-item';
-                    li.innerHTML = `<span>${category}</span><div class="category-actions"><button class="edit-btn" data-category="${category}"><i class="fas fa-edit"></i></button><button class="delete-btn" data-category="${category}"><i class="fas fa-trash"></i></button></div>`;
+                    li.innerHTML = `<span>${cat}</span><div class="category-actions"><button class="edit-btn" data-category="${cat}"><i class="fas fa-edit"></i></button><button class="delete-btn" data-category="${cat}"><i class="fas fa-trash"></i></button></div>`;
                     categoryList.appendChild(li);
                 });
-                document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', function() { editCategory(this.getAttribute('data-category')); }));
-                document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', function() { deleteCategory(this.getAttribute('data-category')); }));
+                document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', function() { editCategory(this.dataset.category); }));
+                document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', async function() {
+                    const cat = this.dataset.category;
+                    const confirmed = await showConfirm(`Delete category "${cat}"? Games will be recategorized.`);
+                    if (confirmed) deleteCategory(cat);
+                }));
             }
             
             function updateGameCategoryEditor() {
                 gameCategoryEditor.innerHTML = '';
                 allGamesData.forEach(game => {
-                    const gameItem = document.createElement('div');
-                    gameItem.className = 'game-item';
-                    gameItem.innerHTML = `
+                    const div = document.createElement('div');
+                    div.className = 'game-item';
+                    div.innerHTML = `
                         <span>${game.name}</span>
                         <select class="category-select" data-game="${game.id}">
                             ${categories.map(cat => `<option value="${cat}" ${gameCategories[game.id] === cat ? 'selected' : ''}>${cat}</option>`).join('')}
                         </select>
                     `;
-                    gameCategoryEditor.appendChild(gameItem);
+                    gameCategoryEditor.appendChild(div);
                 });
                 document.querySelectorAll('.category-select').forEach(select => {
-                    select.addEventListener('change', function() { gameCategories[this.getAttribute('data-game')] = this.value; });
+                    select.addEventListener('change', function() { gameCategories[this.dataset.game] = this.value; });
                 });
             }
             
             async function enhanceAdminPanel() {
-                await gameStats.fetchVisits(); 
+                await gameStats.fetchVisits();
                 const analyticsDiv = document.getElementById('adminAnalyticsPlaceholder');
                 analyticsDiv.innerHTML = `
                     <div class="admin-section">
                         <h3><i class="fas fa-chart-line"></i> Performance</h3>
                         <div class="analytics-grid">
-                            <div class="analytics-card">
-                                <div class="analytics-label">TOTAL VISITORS</div>
-                                <div class="analytics-number">${siteVisits}</div>
-                            </div>
-                            <div class="analytics-card">
-                                <div class="analytics-label">Total Games</div>
-                                <div class="analytics-number">${allGamesData.length}</div>
-                            </div>
+                            <div class="analytics-card"><div class="analytics-label">TOTAL VISITORS</div><div class="analytics-number">${siteVisits}</div></div>
+                            <div class="analytics-card"><div class="analytics-label">Total Games</div><div class="analytics-number">${allGamesData.length}</div></div>
                         </div>
                     </div>
                 `;
             }
 
             function addCategory() {
-                const categoryName = newCategoryName.value.trim();
-                if (categoryName && !categories.includes(categoryName)) {
-                    categories.push(categoryName);
+                const name = newCategoryName.value.trim();
+                if (name && !categories.includes(name)) {
+                    categories.push(name);
                     saveToFirestore().then(() => {
-                        updateCategories(); if (isAdmin) updateGameCategoryEditor(); newCategoryName.value = ''; showToast(`Category "${categoryName}" added!`, 'added');
+                        updateCategories();
+                        if (isAdmin) updateGameCategoryEditor();
+                        newCategoryName.value = '';
+                        showToast(`Category "${name}" added!`, 'added');
                     });
                 } else { showToast('Invalid or duplicate category!', 'removed'); }
             }
             function editCategory(category) {
                 const newName = prompt('Enter new name:', category);
                 if (newName && newName.trim() && newName !== category) {
-                    const index = categories.indexOf(category);
-                    if (index !== -1) categories[index] = newName;
+                    const idx = categories.indexOf(category);
+                    if (idx !== -1) categories[idx] = newName;
                     Object.keys(gameCategories).forEach(id => { if (gameCategories[id] === category) gameCategories[id] = newName; });
                     saveToFirestore().then(() => { updateCategories(); if (isAdmin) updateGameCategoryEditor(); renderCurrentView(); showToast('Category renamed!', 'added'); });
                 }
             }
             function deleteCategory(category) {
-                categories = categories.filter(cat => cat !== category);
+                categories = categories.filter(c => c !== category);
                 Object.keys(gameCategories).forEach(id => { if (gameCategories[id] === category) gameCategories[id] = categories[0] || 'Uncategorized'; });
                 saveToFirestore().then(() => { updateCategories(); if (isAdmin) updateGameCategoryEditor(); renderCurrentView(); showToast('Category deleted!', 'added'); });
             }
             function saveChanges() { saveToFirestore().then(() => { updateCategories(); renderCurrentView(); showToast('All changes saved!', 'added'); }); }
             function resetCategories() {
-                categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing']; gameCategories = {}; initializeGameCategories();
+                categories = ['Action', 'Adventure', 'Puzzle', 'Strategy', 'Racing'];
+                gameCategories = {};
+                initializeGameCategories();
                 saveToFirestore().then(() => { updateCategories(); if (isAdmin) updateGameCategoryEditor(); renderCurrentView(); showToast('Categories reset!', 'added'); });
             }
             
             function adminLogin() {
                 if (adminPassword.value === '868659') {
-                    isAdmin = true; localStorage.setItem('gamesbydd_admin', 'true');
-                    adminLoginModal.classList.remove('active'); adminPanel.classList.add('active'); adminBtn.style.display = 'flex';
-                    updateGameCategoryEditor(); updateNotificationManagement(); enhanceAdminPanel();
+                    isAdmin = true;
+                    localStorage.setItem('gamesbydd_admin', 'true');
+                    adminLoginModal.classList.remove('active');
+                    adminPanel.classList.add('active');
+                    adminBtn.style.display = 'flex';
+                    updateGameCategoryEditor();
+                    updateNotificationManagement();
+                    enhanceAdminPanel();
                     showToast('Login successful!', 'added');
                 } else { showToast('Invalid password!', 'removed'); }
             }
             function adminLogout() {
-                isAdmin = false; localStorage.removeItem('gamesbydd_admin');
-                adminPanel.classList.remove('active'); adminBtn.style.display = 'none'; showToast('Logged out!', 'added');
+                isAdmin = false;
+                localStorage.removeItem('gamesbydd_admin');
+                adminPanel.classList.remove('active');
+                adminBtn.style.display = 'none';
+                showToast('Logged out!', 'added');
             }
 
             function filterHandler() {
                 document.querySelectorAll('.filter').forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
-                currentCategory = this.getAttribute('data-category');
+                currentCategory = this.dataset.category;
                 currentPage = 1;
-                if(currentView !== 'all') switchTab('all'); else renderCurrentView();
+                if(currentView !== 'all') switchTab('all');
+                else renderCurrentView();
             }
 
             function nextPage() { currentPage++; renderCurrentView(); window.scrollTo({ top: gamesContainer.offsetTop - 100, behavior: 'smooth' }); }
             function prevPage() { currentPage--; renderCurrentView(); window.scrollTo({ top: gamesContainer.offsetTop - 100, behavior: 'smooth' }); }
 
             function setupEventListeners() {
-                hamburgerMenu.addEventListener('click', function() {
-                    if (sidebar.classList.contains('active')) closeSidebar();
-                    else openSidebar();
-                });
-                
+                hamburgerMenu.addEventListener('click', () => sidebar.classList.contains('active') ? closeSidebar() : openSidebar());
                 sidebarOverlay.addEventListener('click', closeSidebar);
                 
-                window.addEventListener('scroll', function() {
-                    if (window.pageYOffset > 300) backToTop.classList.add('show'); else backToTop.classList.remove('show');
+                window.addEventListener('scroll', () => {
+                    window.pageYOffset > 300 ? backToTop.classList.add('show') : backToTop.classList.remove('show');
                 });
                 backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
                 
                 searchInput.addEventListener('input', () => {
                     clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        currentPage = 1; renderCurrentView();
-                    }, 300);
+                    searchTimeout = setTimeout(() => { currentPage = 1; renderCurrentView(); }, 300);
+                });
+                clearSearch.addEventListener('click', () => {
+                    searchInput.value = '';
+                    currentPage = 1;
+                    renderCurrentView();
                 });
 
                 gameAssignmentSearch.addEventListener('input', (e) => {
                     const term = e.target.value.toLowerCase();
-                    const items = document.querySelectorAll('.game-item');
-                    items.forEach(item => {
+                    document.querySelectorAll('.game-item').forEach(item => {
                         const name = item.querySelector('span').textContent.toLowerCase();
                         item.style.display = name.includes(term) ? 'flex' : 'none';
                     });
                 });
 
-                notificationBell.addEventListener('click', (e) => { e.stopPropagation(); notificationModal.classList.add('active'); document.body.style.overflow = 'hidden'; });
+                notificationBell.addEventListener('click', () => { notificationModal.classList.add('active'); document.body.style.overflow = 'hidden'; });
                 backNotificationBtn.addEventListener('click', () => { notificationModal.classList.remove('active'); document.body.style.overflow = 'auto'; });
                 markAllReadModal.addEventListener('click', markAllNotificationsAsRead);
                 notificationModal.addEventListener('click', (e) => { if(e.target === notificationModal) { notificationModal.classList.remove('active'); document.body.style.overflow = 'auto'; } });
@@ -1414,6 +2233,7 @@
             window.prevPage = prevPage;
             window.switchTab = switchTab;
             window.closeSidebar = closeSidebar;
+            window.loadGames = loadGames; // for retry button
         });
     </script>
 </body>
